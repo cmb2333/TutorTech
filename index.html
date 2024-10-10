@@ -1,46 +1,80 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TutorTech - Home</title>
-    <link rel="stylesheet" href="style.css">
+    <title>TutorTech</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="index.html">
-            <img src="assets/logo.png" width="300" height= "300">
-            TutorTech
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="index.html">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="team.html">Team</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="project.html">Project</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Contact</a>
-                </li>
-            </ul>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="assets/TutorTech.png" alt="TutorTech Logo" class="logo-img">
+                <h1>TutorTech</h1>
+            </div>
+            <div class="header-buttons">
+                <a href="#about" class="nav-link">About</a>
+                <a href="#team-information" class="nav-link">Meet the Team</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Banner Section -->
+    <section id="banner" class="banner">
+        <div class="content">
+            <h2>Empowering Learning, One Click at a Time</h2>
+            <p>Personalized AI-Integrated Tutoring for a Smarter Future.</p>
         </div>
-    </nav>
+    </section>
 
-    <div class="container mt-5">
-        <h1>Welcome to TutorTech</h1>
-        <p>Your AI-powered tutor and teaching aid platform!</p>
-        <p><em>Project details coming soon...</em></p>
-    </div>
+    <!-- Short Information Section -->
+    <section class="info-section">
+        <h2>What is TutorTech?</h2>
+        <p>TutorTech is an AI-powered web application designed to provide personalized tutoring experiences. Our platform adapts to each student's learning style, offering customized feedback, progress tracking, and study sessions tailored to individual needs.</p>
+    </section>
 
-    <footer class="bg-light text-center py-3">
-        <p>&copy; 2024 TutorTech. All Rights Reserved. All that good stuff</p>
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <h2>About Us</h2>
+        <p>At TutorTech, we believe that every student deserves a learning experience tailored just for them.</p>
+    </section>
+
+    <!-- Team Information Section -->
+    <section id="team-information" class="section-team-information">
+        <div class="container">
+            <h2>Meet the team</h2>
+            <div class="team-cards">
+                <div class="team-card">
+                    <img src="assets/Chase.jpg" class="team-img">
+                    <h3>Chase Babb</h3>
+                    <p>Bio</p>
+                </div>
+                <div class="team-card">
+                    <img src="assets/Ryley.png" class="team-img">
+                    <h3>Ryley Fernandez</h3>
+                    <p>Bio</p>
+                </div>
+                <div class="team-card">
+                    <img src="assets/Faith.jpg" class="team-img">
+                    <h3>Faith Ononye</h3>
+                    <p>Bio</p>
+                </div>
+                <div class="team-card">
+                    <img src="assets/Shurie.png" class="team-img">
+                    <h3>Shurie Kamewada</h3>
+                    <p>Bio</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 TutorTech | All Rights Reserved</p>
     </footer>
-
 </body>
 </html>
+
+
