@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/cmb2333/TutorTech/static/css/main.e70c9e6a.css",
+    "main.js": "/cmb2333/TutorTech/static/js/main.a8d2d910.js",
+    "static/media/banner.jpg": "/cmb2333/TutorTech/static/media/banner.f4a249369c90e0d55593.jpg",
+    "index.html": "/cmb2333/TutorTech/index.html",
+    "main.e70c9e6a.css.map": "/cmb2333/TutorTech/static/css/main.e70c9e6a.css.map",
+    "main.a8d2d910.js.map": "/cmb2333/TutorTech/static/js/main.a8d2d910.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e70c9e6a.css",
+    "static/js/main.a8d2d910.js"
+  ]
+}
