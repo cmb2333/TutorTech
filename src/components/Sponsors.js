@@ -2,8 +2,8 @@ import React from 'react';
 
 function Sponsors() {
   const sponsors = [
-    { name: 'Dr. Andy Wang', img: './assets/andywang.jpg', title: 'Professor & Director, MRTL' },
-    { name: 'Sethuprasad Gorantla', img: './assets/seth.jpg', title: 'Program Assistant Manager, MRTL' },
+    { name: 'Dr. Andy Wang', img: '/assets/andywang.jpg', title: 'Professor & Director, MRTL' },
+    { name: 'Sethuprasad Gorantla', img: '/assets/seth.jpg', title: 'Program Assistant Manager, MRTL' },
   ];
 
   return (
