@@ -17,6 +17,8 @@ const pool = new Pool({
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
 
+
+// -------------------------------- User Login --------------------------------
 app.post('/login', async (req, res) => {
     const { user_id, password } = req.body;
   

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import { Form, Button, Card } from 'react-bootstrap';
 
 function Login() {
   const [userId, setUserId] = useState('');
@@ -36,31 +37,43 @@ function Login() {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <label>
-          User ID:
-          <input
-            type="text"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Password:
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        <button type="submit">Login</button>
-      </form>
-      <p>{message}</p>
-    </div>
+    <section className="d-flex justify-content-center align-items-center">
+      <Card className="login-card text-center shadow-sm mt-5 p-3">
+        <Card.Body>
+          <Card.Title>Login</Card.Title>
+          <Form onSubmit={handleLogin}>
+            {/* User ID field */}
+            <Form.Group controlId="userId" className="mb-3">
+              <Form.Label>User ID</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter user ID"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+              />
+            </Form.Group>
+
+            {/* Password field */}
+            <Form.Group controlId="password" className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </Form.Group>
+
+            {/* Submit button */}
+            <Button variant="primary" type="submit" className="w-100">
+              Login
+            </Button>
+          </Form>
+
+          <p className="mt-3">{message}</p>
+        </Card.Body>
+      </Card>
+    </section>
   );
 }
 
