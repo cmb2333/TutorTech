@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 
-function Banner() {
+function Home() {
   // Get user data from context
   const { user } = useUser(); 
 
@@ -22,5 +22,5 @@ function Banner() {
   );
 }
 
-export default Banner;
+export default Home;
 
