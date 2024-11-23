@@ -1,26 +1,44 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import { Container, Navbar, Nav } from 'react-bootstrap';
+
 function Header() {
   return (
-    <header>
-      <nav>
-        <div className="logo">
-          <img src="./assets/TutorTech.png" alt="TutorTech Logo" className="logo-img" />
-          <h1>TutorTech</h1>
-        </div>
-        <div className="header-buttons">
-          <Link to="/" className="nav-link">Home</Link>
-          <Link to="/about" className="nav-link">About</Link>
-          <Link to="/team" className="nav-link">Meet the Team</Link>
-          <Link to="/sponsors" className="nav-link">Our Sponsors</Link>
-          <Link to="/technologies" className="nav-link">Technologies</Link>
-          <Link to="/solution" className="nav-link">Solution</Link>
-          <Link to="/schedule" className="nav-link">Schedule</Link>
-          <Link to="/login" className="nav-link">Login</Link>
-        </div>
-      </nav>
-    </header>
+    <Navbar expand="lg" variant='dark' className='navbar-custom'>
+      <Container fluid>
+        <Navbar.Brand className='me-auto'>
+          <img
+            alt="NAU Logo"
+            src="/assets/nau_logo.png"
+            className='logo'
+          />{' '}
+          Metrology Research and Teaching Laboratory
+        </Navbar.Brand>
+        <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+        <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-center">
+          <Nav className="d-flex mx-auto">
+            <Nav.Link as={Link} to="/">Home</Nav.Link>
+            <Nav.Link as={Link} to="/courses">Courses</Nav.Link>
+            <Nav.Link as={Link} to="about">About Us</Nav.Link>
+            <Nav.Link as={Link} to="/chat">Chat</Nav.Link>
+          </Nav>
+
+        <Nav className='ms-auto'>
+          <Nav.Link as={Link} to="/login">
+            <i className="bi bi-person"></i> Login
+          </Nav.Link>
+
+          <Nav.Link as={Link} to="/signup">
+            <i className="bi bi-door-open"></i> Signup
+          </Nav.Link>
+        </Nav>
+
+        </Navbar.Collapse>
+
+      </Container>
+
+    </Navbar>
   );
 }
 

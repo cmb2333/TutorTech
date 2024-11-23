@@ -1,38 +1,33 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Form, Button, Card } from 'react-bootstrap';
 
-function Login() {
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const { setUser } = useUser();
-  // Redirect
+const Signup = () => {
+  const [userId, setUserId] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3001/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, password }),
+      const response = await fetch("http://localhost:3001/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, password }),
       });
 
       const data = await response.json();
+      setMessage(data.message);
 
-      // Store user data for session
       if (response.ok) {
-        setMessage(data.message);
-        setUser({ user_id: data.user_id, firstName: data.first_name, lastName: data.last_name });
-        navigate('/');
-      } else {
-        setMessage(data.message);
+        // Redirect to login page after successful registration
+        navigate("/login");
       }
     } catch (error) {
-      setMessage('An error occurred. Please try again.');
+      console.error("Error during registration:", error);
+      setMessage("An error occurred. Please try again.");
     }
   };
 
@@ -40,14 +35,14 @@ function Login() {
     <section className="d-flex justify-content-center align-items-center">
       <Card className="login-card text-center shadow-sm mt-5 p-3">
         <Card.Body>
-          <Card.Title>Login</Card.Title>
-          <Form onSubmit={handleLogin}>
+          <Card.Title>Sign-up</Card.Title>
+          <Form onSubmit={handleSignup}>
             {/* User ID field */}
             <Form.Group controlId="userId" className="mb-3">
               <Form.Label>User ID</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter user ID"
+                placeholder="Enter username"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
               />
@@ -66,7 +61,7 @@ function Login() {
 
             {/* Submit button */}
             <Button variant="primary" type="submit" className="w-100">
-              Login
+              Register
             </Button>
           </Form>
 
@@ -75,6 +70,6 @@ function Login() {
       </Card>
     </section>
   );
-}
+};
 
-export default Login;
+export default Signup;

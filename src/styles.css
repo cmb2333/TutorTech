@@ -1,36 +1,39 @@
+:root {
+    --primary-color: #003466;
+    }
+
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto Condensed', sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f4f4f9;
 }
 
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background-color: #003366;
-    color: #fff;
+
+/* ---------------------------- Nav Bar ---------------------------- */
+
+.navbar-custom {
+    background: var(--primary-color);
+    font-family: 'Roboto Condensed', sans-serif;
+    justify-content: center;
 }
 
-.header-buttons {
-    display: flex;
-    gap: 15px;
+.navbar-custom .nav-link {
+    color: white;
 }
 
-.nav-link {
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: 700;
-    padding: 0.5rem 1rem;
+.navbar-custom .nav-link:hover {
+    color: #ffdd00; 
 }
 
-.nav-link:hover {
-    background-color: #00509e;
-    border-radius: 5px;
+.logo {
+    max-width: 70px;
+    height: auto;
 }
+
+
+/* -------------------------- Home Page ------------------------- */
 
 .btn {
     background-color: #00509e;
@@ -46,25 +49,6 @@ nav {
     background-color: #0077cc;
 }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.logo-img {
-    max-width: 70px;
-    height: auto;
-}
-
-.logo h1 {
-    font-size: 2.5rem;
-    margin: 0;
-    font-family: 'Playfair Display', serif;
-    color: #ffffff;
-    font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
 
 .banner {
     background: url('./assets/banner.jpg') no-repeat center center/cover;
@@ -122,54 +106,108 @@ nav {
     margin-bottom: 1rem;
 }
 
-/* Team Information Section */
-.section-team-information {
-    background-color: #ffffff; 
-    padding: 3rem 2rem;
-    text-align: center;
-}
+/* ----------------------- Login/Signup  ----------------------- */
 
-.section-team-information h2 {
-    margin-bottom: 1rem;
-    color: #005f73;
-}
-
-.team-cards {
+/* Login Page */
+.login-section {
     display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
+    padding-bottom: 10%;
 }
 
-.team-card {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s;
+.login-card {
+    max-width: 400px;
+    width: 100%; 
+    border-radius: 10px; 
+  }
+
+
+/* ----------------------- About Page  ----------------------- */
+.about-section {
+    font-family: 'Roboto Condensed', sans-serif;
+    padding: 3rem 2rem;
+    background-color: white;
+    margin: 2rem 0;
     text-align: center;
-    max-width: 300px;
-    padding: 1rem;
-}
-.team-card:hover {
-    transform: translateY(-10px);
+    color: #003466;
 }
 
-.team-card img {
-    width: 250px; /* Full width for responsive design */
-    height: 300px; /* Fixed height to ensure uniform image sizes */
-    object-fit: cover; /* Maintain aspect ratio and cover the area */
-    border-radius: 8px;
-    margin-bottom: 1rem;
+.features-section {
+    font-family: 'Roboto Condensed', sans-serif;
+    padding: 3rem 2rem;
+    background-color: white;
+    margin: 2rem 0;
+    text-align: center;
+    color: #003466;
 }
 
-.team-card h3 {
-    margin-bottom: 0.5rem;
-    color: #005f73;
-}
+.custom-card {
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+    border-radius: 10px; 
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; 
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
 
-.team-card p {
-    color: #333;
+.custom-card:hover {
+    transform: translateY(-10px); 
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+  }
+  
+.custom-card .card-title {
+    font-weight: bold;
+    font-size: 1.5rem;
+  }
+  
+.custom-card .card-text {
+    font-size: 1rem;
+    color: #555;
+    flex-grow: 1;
+  }
+  
+.custom-card .card-body {
+    padding: 20px;
+  }
+
+/* ----------------------- Courses Page  ----------------------- */
+.courses-page {
+    font-family: 'Roboto Condensed', sans-serif;
 }
+.course-card {
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+  }
+  
+.course-card:hover {
+    transform: scale(1.05);
+  }
+  
+.course-card img {
+    height: 180px;
+    object-fit: cover;
+  }
+
+.course-card .course-title {
+    font-weight: bold;    
+    color: black;      
+    text-decoration: none; 
+  }
+  
+  .course-card .course-title:hover {
+    color: #0056b3; 
+  }
+  
+  
+.course-card .progress-bar {
+    background-color: #28a745;
+  }
+
+/* ----------------------- Footer  ----------------------- */
 
 footer {
     background-color: #003366;
