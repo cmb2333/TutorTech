@@ -7,6 +7,9 @@ import Login from './components/Login';
 import Chat from './components/Chat';
 import Courses from './components/Courses';
 import Signup from './components/Signup';
+import CoursePage from './components/CoursePage';
+
+
 
 function App() {
   return (
@@ -20,6 +23,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/course-page" element={<CoursePage />} />
         </Routes>
       </div>
     </Router>

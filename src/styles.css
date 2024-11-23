@@ -4,7 +4,7 @@
 
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto Condensed', sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f4f4f9;
@@ -123,7 +123,91 @@ body {
   }
 
 
-  /* ----------------------- Footer  ----------------------- */
+/* ----------------------- About Page  ----------------------- */
+.about-section {
+    font-family: 'Roboto Condensed', sans-serif;
+    padding: 3rem 2rem;
+    background-color: white;
+    margin: 2rem 0;
+    text-align: center;
+    color: #003466;
+}
+
+.features-section {
+    font-family: 'Roboto Condensed', sans-serif;
+    padding: 3rem 2rem;
+    background-color: white;
+    margin: 2rem 0;
+    text-align: center;
+    color: #003466;
+}
+
+.custom-card {
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+    border-radius: 10px; 
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; 
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+
+.custom-card:hover {
+    transform: translateY(-10px); 
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+  }
+  
+.custom-card .card-title {
+    font-weight: bold;
+    font-size: 1.5rem;
+  }
+  
+.custom-card .card-text {
+    font-size: 1rem;
+    color: #555;
+    flex-grow: 1;
+  }
+  
+.custom-card .card-body {
+    padding: 20px;
+  }
+
+/* ----------------------- Courses Page  ----------------------- */
+.courses-page {
+    font-family: 'Roboto Condensed', sans-serif;
+}
+.course-card {
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+  }
+  
+.course-card:hover {
+    transform: scale(1.05);
+  }
+  
+.course-card img {
+    height: 180px;
+    object-fit: cover;
+  }
+
+.course-card .course-title {
+    font-weight: bold;    
+    color: black;      
+    text-decoration: none; 
+  }
+  
+  .course-card .course-title:hover {
+    color: #0056b3; 
+  }
+  
+  
+.course-card .progress-bar {
+    background-color: #28a745;
+  }
+
+/* ----------------------- Footer  ----------------------- */
 
 footer {
     background-color: #003366;
