@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import Home from './components/Home';
 import About from './components/About';
 import Login from './components/Login';
@@ -17,12 +19,15 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
-          <Route path="/courses" element={<Courses />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/chat" element={<Chat />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/course-page" element={<CoursePage />} />
+
+          <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+          <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
+
         </Routes>
+        <Footer />
       </div>
     </Router>
   );

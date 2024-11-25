@@ -1,17 +1,35 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 import { Container, Navbar, Nav } from 'react-bootstrap';
 
 function Header() {
+  // Access user and setUser from context
+  const { user, setUser } = useUser(); 
+  const navigate = useNavigate();
+
+  // Handle logout - clear user from context and redirect
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:5000/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setUser(null);
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
   return (
-    <Navbar expand="lg" variant='dark' className='navbar-custom'>
+    <Navbar expand="lg" variant="dark" className="navbar-custom">
       <Container fluid>
-        <Navbar.Brand className='me-auto'>
+        <Navbar.Brand className="me-auto">
           <img
             alt="NAU Logo"
             src="/assets/nau_logo.png"
-            className='logo'
+            className="logo"
           />{' '}
           Metrology Research and Teaching Laboratory
         </Navbar.Brand>
@@ -20,26 +38,36 @@ function Header() {
           <Nav className="d-flex mx-auto">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
             <Nav.Link as={Link} to="/courses">Courses</Nav.Link>
-            <Nav.Link as={Link} to="about">About Us</Nav.Link>
+            <Nav.Link as={Link} to="/about">About Us</Nav.Link>
             <Nav.Link as={Link} to="/chat">Chat</Nav.Link>
           </Nav>
 
-        <Nav className='ms-auto'>
-          <Nav.Link as={Link} to="/login">
-            <i className="bi bi-person"></i> Login
-          </Nav.Link>
-
-          <Nav.Link as={Link} to="/signup">
-            <i className="bi bi-door-open"></i> Signup
-          </Nav.Link>
-        </Nav>
-
+          <Nav className="ms-auto">
+            {user ? (
+              <>
+                <Nav.Link as="span">
+                  Welcome, {user.first_name} {user.last_name}!
+                </Nav.Link>
+                <Nav.Link as="span" onClick={handleLogout}>
+                  <i className="bi bi-box-arrow-right"></i> Logout
+                </Nav.Link>
+              </>
+            ) : (
+              <>
+                <Nav.Link as={Link} to="/login">
+                  <i className="bi bi-person"></i> Login
+                </Nav.Link>
+                <Nav.Link as={Link} to="/signup">
+                  <i className="bi bi-door-open"></i> Signup
+                </Nav.Link>
+              </>
+            )}
+          </Nav>
         </Navbar.Collapse>
-
       </Container>
-
     </Navbar>
   );
 }
 
 export default Header;
+
