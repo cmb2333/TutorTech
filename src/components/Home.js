@@ -9,7 +9,7 @@ import CardGroup from 'react-bootstrap/CardGroup';
 
 
 function Home() {
-  // Get user data from context
+  // Get user data from context - Moved users name to header as per Seth's request
   const { user } = useUser(); 
 
   return (

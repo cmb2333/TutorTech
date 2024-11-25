@@ -15,18 +15,19 @@ function Login() {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3001/login', {
+      const response = await fetch('http://localhost:5000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, password }),
+        credentials: 'include',
       });
 
       const data = await response.json();
 
-      // Store user data for session
+      // Store user data for session then go to home page
       if (response.ok) {
         setMessage(data.message);
-        setUser({ user_id: data.user_id, firstName: data.first_name, lastName: data.last_name });
+        setUser(data);
         navigate('/');
       } else {
         setMessage(data.message);

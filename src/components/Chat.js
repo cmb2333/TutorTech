@@ -8,8 +8,11 @@ function Chat() {
     e.preventDefault();
     if (input.trim()) {
       // Add the user's message to the chat
-      setMessages([...messages, { sender: 'user', text: input }]);
-      // TODO: Add logic to send input to AI model and receive a response
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: 'user', text: input },
+        { sender: 'ai', text: "Hey! I'm your AI tutor! This feature isn't quite functional yet... but it will be soon!" },
+      ]);
       setInput('');
     }
   };
@@ -38,4 +41,5 @@ function Chat() {
 }
 
 export default Chat;
+
 
