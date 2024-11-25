@@ -9,8 +9,6 @@ import Courses from './components/Courses';
 import Signup from './components/Signup';
 import CoursePage from './components/CoursePage';
 
-
-
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
