@@ -1,17 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
 import { Container, Card, CardBody } from 'react-bootstrap';
 import HomeCarousel from './HomeCarousel';
 import ListGroup from 'react-bootstrap/ListGroup';
 import CardGroup from 'react-bootstrap/CardGroup';
 
-
-
 function Home() {
-  // Get user data from context - Moved users name to header as per Seth's request
-  const { user } = useUser(); 
-
   return (
     <body>
       <section className="banner">
@@ -22,6 +15,7 @@ function Home() {
             with Artifical Intelligence</h1>
         </Container>
       </section>
+    
 
       <section className='current-landscape-section'>
         <Container className='py-5 text-center '>

@@ -8,7 +8,6 @@ function HomeCarousel() {
     <section className="home-carousel">
     <Container>
       <Carousel variant='dark'>
-
         <Carousel.Item className='carousel-content'>
           <Card className="carousel-card">
             <Card.Img variant="top" src="/assets/exampleCourse.jpg" alt="Course Image" />

@@ -111,9 +111,9 @@ body {
 }
 
 .home-carousel {
-    padding: 2rem 0;
-    background-color: #f8f9fa;
-    text-align: center;
+    position: relative;
+    overflow: hidden;
+    width: 50%;
 }
 
 .carousel-content {
