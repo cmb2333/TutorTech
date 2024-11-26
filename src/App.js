@@ -10,6 +10,8 @@ import Chat from './components/Chat';
 import Courses from './components/Courses';
 import Signup from './components/Signup';
 import CoursePage from './components/CoursePage';
+import './styles.css';  
+
 
 function App() {
   return (

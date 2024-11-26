@@ -31,7 +31,8 @@ function Header() {
             src="/assets/nau_logo.png"
             className="logo"
           />{' '}
-          Metrology Research and Teaching Laboratory
+          <h1 className="mtrl-heading">MRTL</h1>
+          <span className="lab-subtext">Metrology Research and Teaching Laboratory</span>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-center">
@@ -70,4 +71,3 @@ function Header() {
 }
 
 export default Header;
-

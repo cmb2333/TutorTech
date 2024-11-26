@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { Form, Button, Card } from 'react-bootstrap';
+// import chatbot and conversation flow
+import Chatbot from 'react-chatbotify';
+import { flow } from './flow';
 
 function Login() {
   const [userId, setUserId] = useState('');
@@ -38,10 +41,18 @@ function Login() {
   };
 
   return (
-    <section className="d-flex justify-content-center align-items-center">
-      <Card className="login-card text-center shadow-sm mt-5 p-3">
+    <section className="d-flex justify-content-center align-items-center flex-column" style={{ height: '100vh' }}>
+      {/* Login title centered above the card */}
+      <h1 style={{
+        marginBottom: '40px', 
+        textAlign: 'center', 
+        color: '#003466', 
+        fontSize: '2rem', 
+        fontWeight: 'bold'
+      }}>Login</h1>
+
+      <Card className="login-card text-center shadow-sm p-3">
         <Card.Body>
-          <Card.Title>Login</Card.Title>
           <Form onSubmit={handleLogin}>
             {/* User ID field */}
             <Form.Group controlId="userId" className="mb-3">
@@ -74,6 +85,8 @@ function Login() {
           <p className="mt-3">{message}</p>
         </Card.Body>
       </Card>
+      {/* Chatbot at the bottom of the page */}
+      <Chatbot flow={flow} />
     </section>
   );
 }
