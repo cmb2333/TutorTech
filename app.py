@@ -25,17 +25,15 @@ def get_db_connection():
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
 def login():
-    # Get JSON data from request body
+    # Existing code
     data = request.json  
     user_id = data.get("user_id")
     password = data.get("password")
 
     try:
-        # Connect to database
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Check if user exists and the password matches
         cursor.execute(
             "SELECT * FROM login_information WHERE user_id = %s AND password = %s",
             (user_id, password)
@@ -45,7 +43,6 @@ def login():
         if not result:
             return jsonify({"message": "Invalid username or password"}), 401
 
-        # Retrieve user information
         cursor.execute(
             "SELECT first_name, last_name FROM student_information WHERE user_id = %s",
             (user_id,)
@@ -53,7 +50,6 @@ def login():
         user_info = cursor.fetchone()
 
         if user_info:
-            # Create response and set cookie for session
             response = make_response(jsonify({
                 "message": "Login successful",
                 "user_id": user_id,
@@ -81,11 +77,9 @@ def session():
         return jsonify({"message": "No active session"}), 401
 
     try:
-        # Connect to database
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Retrieve user information based on userid
         cursor.execute(
             "SELECT first_name, last_name FROM student_information WHERE user_id = %s",
             (user_id,)
@@ -116,6 +110,25 @@ def logout():
     response = make_response(jsonify({"message": "Logged out"}))
     response.delete_cookie("user_id")
     return response, 200
+
+# ------------------------- Fetch Course Information --------------------------------
+@app.route('/courses', methods=['GET'])
+def get_courses():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT course_code, course_title, course_description, credits FROM course_information")
+        courses = cursor.fetchall()
+
+        # Return fetched courses as JSON
+        return jsonify(courses), 200
+
+    except Exception as e:
+        return jsonify({"message": "Server error"}), 500
+
+    finally:
+        if conn:
+            conn.close()
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
