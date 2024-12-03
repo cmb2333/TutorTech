@@ -199,11 +199,29 @@ body {
   font-family: 'Roboto Condensed', sans-serif;
   font-weight: 500;
   color: #fff;
-  text-shadow: 4px 4px 8px rgba(0, 0, 0, .9);
-  margin: 14rem auto 0; 
+  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.9);
+  margin: 10rem auto 0; 
   padding: 0.5rem;
-  text-align: center; 
+  text-align: center;
+  font-size: 2.5rem; /* Default size for desktops */
+  line-height: 1.5;
 }
+
+@media (max-width: 768px) {
+  .banner-text h1 {
+    margin: 8rem auto 0;
+    font-size: 2rem; /* Adjusted size for tablets */
+  }
+}
+
+@media (max-width: 480px) {
+  .banner-text h1 {
+    margin: 6rem auto 0;
+    font-size: 1.5rem; /* Adjusted size for mobile devices */
+    padding: 1rem;
+  }
+}
+
 
 /* --- Current Landscape Section --- */
 .current-landscape-section {

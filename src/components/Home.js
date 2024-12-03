@@ -16,7 +16,7 @@ function Home() {
     <body>
       <section className="banner">
         <Container className='banner-text'>
-          <h1 class="display-4 banner-text">
+          <h1 class="display-4">
             “Tell me and I forget, teach me and I may remember, involve me and I learn.” — Benjamin Franklin            <br></br>
           </h1>
         </Container>
