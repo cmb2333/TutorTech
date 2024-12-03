@@ -20,14 +20,14 @@ function Courses() {
         {courses.map((course, index) => (
           <Col md={4} key={index}>
             <Card className="course-card">
-              <Link to={`/course-page/${course.course_code}`}>
+              <Link to={`/courses/${course.course_code}`}>
                 <Card.Img
                   variant="top"
                   src="/assets/exampleCourse.jpg"
                   alt={`Image for ${course.course_title}`}
                 />
                 <Card.Body>
-                  <Card.Title className="course-title">{course.course_title}</Card.Title>
+                  <Card.Title className="course-card-title">{course.course_title}</Card.Title>
                 </Card.Body>
               </Link>
               <Card.Body>

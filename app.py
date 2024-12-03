@@ -4,13 +4,15 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
 from dotenv import load_dotenv
+import openai
 
 # Load environment variables
 load_dotenv()
 
 # Allow requests from the frontend with credentials (for cookies)
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+# Enable CORS for the app (Hopefully this will fix cors issues)
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
 def get_db_connection():
     return psycopg2.connect(
@@ -22,10 +24,13 @@ def get_db_connection():
         cursor_factory=RealDictCursor
     )
 
+# Set API key from env
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
 def login():
-    # Existing code
+
     data = request.json  
     user_id = data.get("user_id")
     password = data.get("password")
@@ -129,6 +134,76 @@ def get_courses():
     finally:
         if conn:
             conn.close()
+
+@app.route('/courses/<course_id>', methods=['GET'])
+def get_course(course_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Fetch course by course_id
+        cursor.execute(
+            "SELECT course_code, course_title, course_description, credits FROM course_information WHERE course_code = %s",
+            (course_id,)
+        )
+        course = cursor.fetchone()
+
+        if not course:
+            return jsonify({"message": "Course not found"}), 404
+
+        # Return course data as JSON
+        return jsonify({
+            "course_code": course["course_code"],
+            "course_title": course["course_title"],
+            "course_description": course["course_description"],
+            "credits": course["credits"]
+        }), 200
+
+    except Exception as e:
+        print(f"Error fetching course: {e}")
+        return jsonify({"message": "Server error"}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+# ------------------------- AI Chat -------------------------------------- 
+@app.route('/api/chat', methods=['POST', 'OPTIONS'])
+def chat():
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+        response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response, 200
+
+    try:
+        data = request.json
+        bot_type = data.get('botType', 'Tutor')
+        prompt = data.get('prompt', '')
+
+        # AI bot types
+        bot_prompts = {
+            "Tutor": "You are a helpful tutor providing detailed explanations.",
+            "Mentor": "You are a mentor offering guidance and support.",
+            "Co-Learner": "You are a co-learner discussing the material interactively.",
+        }
+
+        bot_response = bot_prompts.get(bot_type, "You are a helpful assistant.")
+        print(f"Bot Type: {bot_type}")
+        print(f"Prompt: {prompt}")
+        print(f"Selected Bot Prompt: {bot_response}")
+
+        # The static response
+        return jsonify({
+            "response": f"'{bot_type}' received your question: '{prompt}'. "
+                        f"However, the AI bot is still in progress. Check back later!"
+        }), 200
+
+    except Exception as e:
+        print(f"Error during simulated AI response: {e}")
+        return jsonify({"error": "Failed to process the request"}), 500
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
