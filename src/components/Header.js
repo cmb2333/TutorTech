@@ -25,14 +25,17 @@ function Header() {
   return (
     <Navbar expand="lg" variant="dark" className="navbar-custom">
       <Container fluid>
-        <Navbar.Brand className="me-auto">
-          <img
-            alt="NAU Logo"
-            src="/assets/nau_logo.png"
-            className="logo"
-          />{' '}
-          <h1 className="mtrl-heading">MRTL</h1>
-          <span className="lab-subtext">Metrology Research and Teaching Laboratory</span>
+        <Navbar.Brand className="d-flex me-auto">
+          <a href="/">
+            <img
+              alt="NAU Logo"
+              src="/assets/nau_logo.png"
+              className="logo"
+            />
+          </a>
+          <h1 className="mtrl-heading">MRTL
+            <span className="lab-subtext">Metrology Research and Teaching Laboratory</span>
+          </h1>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-center">
