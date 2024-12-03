@@ -3,6 +3,13 @@ import { Container, Card, CardBody } from 'react-bootstrap';
 import HomeCarousel from './HomeCarousel';
 import ListGroup from 'react-bootstrap/ListGroup';
 import CardGroup from 'react-bootstrap/CardGroup';
+// import chatbot and conversation flow
+import Chatbot from 'react-chatbotify';
+import { flow } from './flow';
+
+
+
+
 
 function Home() {
   return (
@@ -12,7 +19,7 @@ function Home() {
           <h1 class="display-4 banner-text">
             Personalize your Learning Experience
             <br></br>
-            with Artifical Intelligence</h1>
+            with Artificial Intelligence</h1>
         </Container>
       </section>
     
@@ -51,6 +58,8 @@ function Home() {
               </Card.Body>
             </Card>
           </CardGroup>
+          {/* Chatbot at the bottom of the page */}
+        <Chatbot flow={flow} />
         </Container>
       </section>
 

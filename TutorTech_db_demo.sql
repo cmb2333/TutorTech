@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS course_information
 	credits INT NOT NULL
 );
 
--- Table: user_information
--- DROP TABLE IF EXISTS user_information
-CREATE TABLE IF NOT EXISTS user_information
+-- Table: student_information
+-- DROP TABLE IF EXISTS student_information
+CREATE TABLE IF NOT EXISTS student_information
 (
 	-- user identification
 	user_id VARCHAR(8) NOT NULL PRIMARY KEY,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS login_information
 	password VARCHAR(20) NOT NULL,
 	-- foreign key constraint
 	CONSTRAINT user_id FOREIGN KEY (user_id)
-		REFERENCES user_information (user_id)
+		REFERENCES student_information (user_id)
 );
 
 -- course_information MOCK DATA inserts
@@ -48,12 +48,13 @@ INSERT INTO course_information (course_code, course_title, course_description, c
 INSERT INTO course_information (course_code, course_title, course_description, credits)
 	VALUES ('PHY530', 'Spectroscopy', 'This graduate-level course provides an in-depth overview of spectroscopic techniques used to probe the electronic, vibrational, rotational, and magnetic structure of atoms, molecules, and solids. Theoretical foundations of atomic and molecular spectroscopy are developed, including treatment of absorption, emission, scattering of electromagnetic radiation.', 3);
 
---user_information MOCK DATA insert
-INSERT INTO user_information (user_id, first_name, last_name, email)
+--student_information MOCK DATA insert
+INSERT INTO student_information (user_id, first_name, last_name, email)
 	VALUES ('jh1', 'Josefina', 'Hoffman', 'jh1@gmail.com'), ('tm2', 'Titus', 'Munoz', 'tm2@gmail.com'),('db3', 'Darnell', 'Brady', 'jdb3@gmail.com');
 
 -- login_information MOCK DATA insert
 INSERT INTO login_information
 	VALUES ('jh1', 'jhPassword'), ('tm2', 'tmPassword'), ('db3', 'dbPassword');
+
 
 
