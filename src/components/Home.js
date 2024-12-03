@@ -17,9 +17,8 @@ function Home() {
       <section className="banner">
         <Container className='banner-text'>
           <h1 class="display-4 banner-text">
-            Personalize your Learning Experience
-            <br></br>
-            with Artificial Intelligence</h1>
+            “Tell me and I forget, teach me and I may remember, involve me and I learn.” — Benjamin Franklin            <br></br>
+          </h1>
         </Container>
       </section>
     
@@ -32,14 +31,34 @@ function Home() {
               <Card.Body>
                 <Card.Title>Limitations of LMS systems</Card.Title>
                 <ListGroup variant="flush">
-                  <ListGroup.Item className='limitations'>Lack of real-time support</ListGroup.Item>
-                  <ListGroup.Item className='limitations'>Limited Personalization</ListGroup.Item>
-                  <ListGroup.Item className='limitations'>Minimal Engagement</ListGroup.Item>
-                  <ListGroup.Item className='limitations'>Inconsistent Progress Checking</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Lack of real-time support</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Limited Personalization</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Minimal Engagement</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Inconsistent Progress Checking</ListGroup.Item>
               </ListGroup>
               </Card.Body>
             </Card>
             <Card className='landscape-card shadow'>
+              <Card.Body>
+                <Card.Title>Classroom Environment</Card.Title>
+                <ListGroup variant="flush">
+                  <ListGroup.Item className='list-format'>Avg Proffesor to Student Ratio 1:18</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Only 2-3 hours of class time per week</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Extensive Lectures with Minimal Time for Clarification</ListGroup.Item>
+              </ListGroup>
+              </Card.Body>
+            </Card>
+            <Card className='landscape-card shadow'>
+              <Card.Body>
+                <Card.Title>Academic Integrity</Card.Title>
+                <ListGroup variant="flush">
+                  <ListGroup.Item className='list-format'>Misuse of Generative AI</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Prohibited Student Collaboration</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Online Platforms with Collection of Completed Assignments</ListGroup.Item>
+              </ListGroup>
+              </Card.Body>
+            </Card>
+            {/*<Card className='landscape-card shadow'>
               <Card.Body>
               <Card.Title>Learning frustration and degradement of motivation</Card.Title>
                 <p>
@@ -56,7 +75,7 @@ function Home() {
                   a potential solution. 
                 </p>
               </Card.Body>
-            </Card>
+            </Card>*/}
           </CardGroup>
           {/* Chatbot at the bottom of the page */}
         <Chatbot flow={flow} />
