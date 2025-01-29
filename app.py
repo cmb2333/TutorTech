@@ -4,13 +4,17 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI
 
 # Load environment variables
 load_dotenv()
 
+# OpenAI client setup
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 # Allow requests from the frontend with credentials (for cookies)
 app = Flask(__name__)
+
 # Enable CORS for the app (Hopefully this will fix cors issues)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
@@ -23,9 +27,6 @@ def get_db_connection():
         port=os.getenv("DB_PORT"),
         cursor_factory=RealDictCursor
     )
-
-# Set API key from env
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
@@ -183,26 +184,33 @@ def chat():
         bot_type = data.get('botType', 'Tutor')
         prompt = data.get('prompt', '')
 
-        # AI bot types
+        # AI bot customization
         bot_prompts = {
             "Tutor": "You are a helpful tutor providing detailed explanations.",
             "Mentor": "You are a mentor offering guidance and support.",
             "Co-Learner": "You are a co-learner discussing the material interactively.",
         }
 
-        bot_response = bot_prompts.get(bot_type, "You are a helpful assistant.")
-        print(f"Bot Type: {bot_type}")
-        print(f"Prompt: {prompt}")
-        print(f"Selected Bot Prompt: {bot_response}")
+        system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
 
-        # The static response
-        return jsonify({
-            "response": f"'{bot_type}' received your question: '{prompt}'. "
-                        f"However, the AI bot is still in progress. Check back later!"
-        }), 200
+        # OpenAI API call using OpenAI client
+        completion = client.chat.completions.create(
+            model="gpt-4o",  # Change as needed?
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        ai_response = completion.choices[0].message.content
+
+        # Debugging output
+        print(f"AI Response: {ai_response}")
+
+        return jsonify({"response": ai_response}), 200
 
     except Exception as e:
-        print(f"Error during simulated AI response: {e}")
+        print(f"Error fetching AI response: {e}")
         return jsonify({"error": "Failed to process the request"}), 500
 
 if __name__ == "__main__":
