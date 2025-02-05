@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { Form, Button, Card } from 'react-bootstrap';
-// import chatbot and conversation flow
-import Chatbot from 'react-chatbotify';
-import { flow } from './flow';
 
 function Login() {
   const [userId, setUserId] = useState('');
@@ -21,7 +18,7 @@ function Login() {
       const response = await fetch('http://localhost:5000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, password }),
+        body: JSON.stringify({ user_id: userId, user_password: password }),
         credentials: 'include',
       });
 
@@ -85,8 +82,6 @@ function Login() {
           <p className="mt-3">{message}</p>
         </Card.Body>
       </Card>
-      {/* Chatbot at the bottom of the page */}
-      <Chatbot flow={flow} />
     </section>
   );
 }

@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS course_assignments
 );
 
 -- Table: student_information
--- DROP TABLE IF EXISTS student_information
+DROP TABLE IF EXISTS student_information;
 CREATE TABLE IF NOT EXISTS student_information
 (
 	-- user identification
@@ -54,9 +54,9 @@ CREATE TABLE IF NOT EXISTS student_information
 	first_name VARCHAR(100) NOT NULL,
 	last_name VARCHAR(100) NOT NULL,
 	-- user email
-	email VARCHAR(255) NOT NULL
+	email VARCHAR(255) NOT NULL,
 	-- user password
-	password VARCHAR(20) NOT NULL,
+	user_password VARCHAR(20) NOT NULL
 );
 
 -- course_information MOCK DATA inserts ----------------------------------------------------------------------
@@ -123,15 +123,14 @@ INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max
 -------------------------------------------------------------------------------------------------------------
 
 -- student_information MOCK DATA insert
-INSERT INTO student_information (user_id, first_name, last_name, email, password)
-	VALUES ('jh1', 'Josefina', 'Hoffman', 'jh1@gmail.com', 'jhPassword');
+INSERT INTO student_information (user_id, first_name, last_name, email, user_password)
+    VALUES ('jh1', 'Josefina', 'Hoffman', 'jh1@gmail.com', 'jhPassword');
 
-INSERT INTO student_information (user_id, first_name, last_name, email, password) 
-	VALUES ('tm2', 'Titus', 'Munoz', 'tm2@gmail.com', 'tmPassword');
+INSERT INTO student_information (user_id, first_name, last_name, email, user_password)
+    VALUES ('tm2', 'Titus', 'Munoz', 'tm2@gmail.com', 'tmPassword');
 
-INSERT INTO student_information (user_id, first_name, last_name, email, password) 
-	VALUES ('db3', 'Darnell', 'Brady', 'jdb3@gmail.com', 'dbPassword');
-
+INSERT INTO student_information (user_id, first_name, last_name, email, user_password)
+    VALUES ('db3', 'Darnell', 'Brady', 'db3@gmail.com', 'dbPassword');
 -------------------------------------------------------------------------------------------------------------
 
 

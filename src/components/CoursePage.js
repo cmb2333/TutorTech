@@ -31,8 +31,23 @@ function CoursePage() {
         {course ? (
           <>
             <h2>{course.course_title}</h2>
-            <p>{course.course_description}</p>
             <p>Credits: {course.credits}</p>
+            <h3>Lectures</h3>
+            <ul>
+              {course.lectures.map((lecture) => (
+                <li key={lecture.lecture_id}>
+                  <strong>{lecture.lecture_title}</strong> - <a href={lecture.video_link}>Watch</a>
+                </li>
+              ))}
+            </ul>
+            <h3>Assignments</h3>
+            <ul>
+              {course.assignments.map((assignment) => (
+                <li key={assignment.assignment_id}>
+                  <strong>{assignment.assignment_title}</strong> - Max Score: {assignment.max_score}
+                </li>
+              ))}
+            </ul>
           </>
         ) : (
           <p>Loading course information...</p>

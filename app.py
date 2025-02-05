@@ -34,14 +34,14 @@ def login():
 
     data = request.json  
     user_id = data.get("user_id")
-    password = data.get("password")
+    password = data.get("user_password")
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT * FROM login_information WHERE user_id = %s AND password = %s",
+            "SELECT * FROM student_information WHERE user_id = %s AND user_password = %s",
             (user_id, password)
         )
         result = cursor.fetchone()
@@ -75,6 +75,44 @@ def login():
         if conn:
             conn.close()
 
+# -------------------------------- User Sign up --------------------------------
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.json
+    user_id = data.get("user_id")
+    email = data.get("email")
+    user_password = data.get("user_password")
+    first_name = data.get("first_name")
+    last_name = data.get("last_name")
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Make sure user does not already exist
+        cursor.execute("SELECT * FROM student_information WHERE user_id = %s OR email = %s", (user_id, email))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            return jsonify({"message": "User ID or Email already exists"}), 400
+
+        # Insert new user into database
+        cursor.execute(
+            "INSERT INTO student_information (user_id, email, user_password, first_name, last_name) VALUES (%s, %s, %s, %s, %s)",
+            (user_id, email, user_password, first_name, last_name)
+        )
+        conn.commit()
+
+        return jsonify({"message": "Signup successful"}), 201
+
+    except Exception as e:
+        print(f"Error during signup: {e}")
+        return jsonify({"message": "Server error"}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
 # -------------------------------- Check Session --------------------------------
 @app.route('/session', methods=['GET'])
 def session():
@@ -87,14 +125,14 @@ def session():
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT first_name, last_name FROM student_information WHERE user_id = %s",
+            "SELECT user_id, first_name, last_name FROM student_information WHERE user_id = %s",
             (user_id,)
         )
         user_info = cursor.fetchone()
 
         if user_info:
             return jsonify({
-                "user_id": user_id,
+                "user_id": user_info["user_id"],
                 "first_name": user_info["first_name"],
                 "last_name": user_info["last_name"],
                 "message": "Session active"
@@ -123,7 +161,7 @@ def get_courses():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT course_code, course_title, course_description, credits FROM course_information")
+        cursor.execute("SELECT course_code, course_title, credits FROM course_information")
         courses = cursor.fetchall()
 
         # Return fetched courses as JSON
@@ -144,7 +182,7 @@ def get_course(course_id):
 
         # Fetch course by course_id
         cursor.execute(
-            "SELECT course_code, course_title, course_description, credits FROM course_information WHERE course_code = %s",
+            "SELECT course_code, course_title, credits FROM course_information WHERE course_code = %s",
             (course_id,)
         )
         course = cursor.fetchone()
@@ -152,12 +190,33 @@ def get_course(course_id):
         if not course:
             return jsonify({"message": "Course not found"}), 404
 
+        # Fetch lectures
+        cursor.execute(
+            """
+            SELECT lecture_id, lecture_title, video_link
+            FROM course_lectures WHERE course_code = %s
+            """,
+            (course_id,)
+        )
+        lectures = cursor.fetchall()
+
+        # Fetch assignments
+        cursor.execute(
+            """
+            SELECT assignment_id, assignment_title, max_score
+            FROM course_assignments WHERE course_code = %s
+            """,
+            (course_id,)
+        )
+        assignments = cursor.fetchall()
+
         # Return course data as JSON
         return jsonify({
             "course_code": course["course_code"],
             "course_title": course["course_title"],
-            "course_description": course["course_description"],
-            "credits": course["credits"]
+            "credits": course["credits"],
+            "lectures": lectures,
+            "assignments": assignments
         }), 200
 
     except Exception as e:

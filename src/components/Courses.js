@@ -17,8 +17,8 @@ function Courses() {
     <Container className="courses-page">
       <h2>Courses</h2>
       <Row>
-        {courses.map((course, index) => (
-          <Col md={4} key={index}>
+        {courses.map((course) => (
+          <Col md={4} key={course.course_code}>
             <Card className="course-card">
               <Link to={`/courses/${course.course_code}`}>
                 <Card.Img
@@ -28,15 +28,9 @@ function Courses() {
                 />
                 <Card.Body>
                   <Card.Title className="course-card-title">{course.course_title}</Card.Title>
+                  <Card.Text>Credits: {course.credits}</Card.Text>
                 </Card.Body>
               </Link>
-              <Card.Body>
-                <Card.Text>{course.course_description}</Card.Text>
-                <div>
-                  <strong>Credits:</strong> {course.credits}
-                  <ProgressBar now={Math.random() * 100} label={`${Math.floor(Math.random() * 100)}%`} />
-                </div>
-              </Card.Body>
             </Card>
           </Col>
         ))}
