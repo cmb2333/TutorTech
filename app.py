@@ -4,25 +4,40 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI
+import logging
 
 # Load environment variables
 load_dotenv()
 
+# OpenAI client setup
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 # Allow requests from the frontend with credentials (for cookies)
 app = Flask(__name__)
+
+
 # Enable CORS for the app (Hopefully this will fix cors issues)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
+# Configure logging 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
 def get_db_connection():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        database=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        port=os.getenv("DB_PORT"),
-        cursor_factory=RealDictCursor
-    )
+    try:
+        connection = psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            database=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            port=os.getenv("DB_PORT"),
+            cursor_factory=RealDictCursor
+        )
+        logging.info("Successfully connected to the PostgreSQL database.")
+        return connection
+    except psycopg2.Error as e:
+        logging.error(f"Failed to connect to the PostgreSQL database: {e}")
+        raise
 
 # Set API key from env
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -49,7 +64,7 @@ def login():
             return jsonify({"message": "Invalid username or password"}), 401
 
         cursor.execute(
-            "SELECT first_name, last_name FROM student_information WHERE user_id = %s",
+            "SELECT first_name, last_name, email FROM student_information WHERE user_id = %s",
             (user_id,)
         )
         user_info = cursor.fetchone()
@@ -58,6 +73,7 @@ def login():
             response = make_response(jsonify({
                 "message": "Login successful",
                 "user_id": user_id,
+                "email": user_info["email"],
                 "first_name": user_info["first_name"],
                 "last_name": user_info["last_name"]
             }))
@@ -86,7 +102,7 @@ def session():
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT first_name, last_name FROM student_information WHERE user_id = %s",
+            "SELECT first_name, last_name, email FROM student_information WHERE user_id = %s",
             (user_id,)
         )
         user_info = cursor.fetchone()
@@ -96,6 +112,7 @@ def session():
                 "user_id": user_id,
                 "first_name": user_info["first_name"],
                 "last_name": user_info["last_name"],
+                "email": user_info["email"],
                 "message": "Session active"
             }), 200
         else:
@@ -115,6 +132,78 @@ def logout():
     response = make_response(jsonify({"message": "Logged out"}))
     response.delete_cookie("user_id")
     return response, 200
+
+
+# -------------------------------- Update Profile --------------------------------
+@app.route('/update-profile', methods=['PUT'])
+def update_profile():
+
+    data = request.json  
+    user_id = data.get("user_id")
+    first_name = data.get("first_name")
+    last_name = data.get("last_name")
+    email = data.get("email")
+
+    try:
+        conn= get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE student_information SET first_name = %s, last_name = %s, email=%s WHERE user_id = %s RETURNING user_id, first_name, last_name, email",
+            (first_name, last_name, email, user_id)
+        )
+        user_info = cursor.fetchone()
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        if user_info:
+            return jsonify({
+                "user_id": user_id,
+                "first_name": user_info["first_name"],
+                "last_name": user_info["last_name"],
+                "email": user_info["email"],
+            })
+        else:
+            return jsonify({"message": "Failed to update profile"}), 500
+
+    except Exception as e:
+        print(f"Error updating profile: {e}")
+        return jsonify({"message": "Server error"}), 500
+    
+# -------------------------------- Change Password --------------------------------
+@app.route('/change-password', methods=["PUT"])
+def change_password():
+    
+    data = request.json
+    user_id = data.get("user_id")
+    currentPassword = data.get("currentPassword")
+    newPassword = data.get("newPassword")
+
+    try:
+        conn= get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT * FROM login_information WHERE user_id = %s AND password = %s",
+            (user_id, currentPassword)
+        )
+        result = cursor.fetchone()
+
+        if not result:
+            return jsonify({"message": "Current Password Invalid"}), 401
+        
+        cursor.execute("UPDATE login_information SET password = %s WHERE user_id = %s", (newPassword, user_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({"message": "Password updated successfully."})
+    
+    except Exception as e:
+        print("Error updating password:", e)
+        return jsonify({"message": "Failed to update password."}), 500
+        
+
 
 # ------------------------- Fetch Course Information --------------------------------
 @app.route('/courses', methods=['GET'])

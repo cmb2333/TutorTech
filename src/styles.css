@@ -7,7 +7,7 @@
 
 body {
   margin: 0;
-  font-family: var(--font-family);
+  font-family: var(--font-family) !important;
   line-height: 1.6;
   color: #333;
   background-color: #f4f4f9;
@@ -87,99 +87,58 @@ body {
 }
 
 /* ----------------------- Login/Signup ----------------------- */
-.login-signup-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 5rem 1rem;
-}
-
-.login-card,
-.signup-card {
-  max-width: 400px;
-  width: 100%;
-  padding: 2rem;
-  background-color: #00274d !important; /* Dark blue background */
-  border: 2px solid var(--primary-color);
+.form-container {
+  width: 350px;
+  height: 500px;
+  background-color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  position: relative;
+  box-sizing: border-box;
+  padding: 20px 30px;
 }
 
-.login-card h1,
-.signup-card h1 {
-  color: #003466; /* Set the color of the heading to dark blue */
-  font-size: 2rem; /* Adjust the size as needed */
-  text-align: center; /* Center the heading text */
-  margin: 0;
-  padding: 0.5rem 0; /* Adjust space above and below */
-  position: absolute;
-  top: -2rem; /* Push the heading above the card */
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: bold;
-}
-
-/* Styling for form elements inside cards */
-.login-card h3,
-.signup-card h3 {
-  font-size: 1.8rem;
-  font-weight: bold;
+.login-form h1 {
   text-align: center;
-  margin-top: 3.5rem; /* Space below the header */
-  margin-bottom: 1.5rem;
+  margin: 10px 0 30px 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 15px;
+}
+
+.login-form .input {
+  border-radius: 20px;
+  border: 1px solid #c0c0c0;
+  outline: 0 !important;
+  box-sizing: border-box;
+  padding: 12px 15px;
+}
+
+.login-form .login-button {
+  padding: 10px 15px;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+        "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  border-radius: 20px;
+  border: 0 !important;
+  outline: 0 !important;
+  background: gray;
   color: white;
-}
-
-.login-card label,
-.signup-card label {
-  color: white; /* Text inside the box like 'User ID', 'Password' will be white */
-}
-
-.login-card input,
-.signup-card input {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1rem;
-  color: #003466; /* Text inside input fields will be dark blue */
-  background-color: white; /* Input fields remain white */
-}
-
-.login-card input::placeholder,
-.signup-card input::placeholder {
-  color: #003466; /* Placeholder text inside the input fields is dark blue */
-}
-
-.login-card button,
-.signup-card button {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #FFD200; /* Outline will be the yellow color */
-  border-radius: 5px;
-  font-size: 1rem;
-  font-weight: bold;
-  background: #FFD200; /* Button background is yellow */
-  color: #003466; /* Button text color is dark blue */
   cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 
-.login-card button:hover,
-.signup-card button:hover {
-  background: #003466; /* Background changes to dark blue on hover */
-  color: #FFD200; /* Text changes to yellow on hover */
-  border-color: #FFD200; /* Border changes to yellow on hover */
+.login-form .login-button:hover {
+  background-color: var(--primary-color)
 }
 
-.course-card-title {
-  color: darkblue !important;
-}
-
-.p.mt3 {
-  color: white !important;
+.form-btn:active {
+  box-shadow: none;
 }
 
 /* -------------------------- Home Page ------------------------- */
@@ -551,4 +510,94 @@ footer {
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #f9f9f9;
+}
+
+/* ---------------------------- Dashboard ---------------------------- */
+
+.Dashboard {
+  position: relative;
+}
+
+/* ----------------------- User Profile ------------------ */
+.Profile {
+  margin-top: 10px;
+  margin-bottom: 40px;
+  align-items: center;
+}
+
+.Profile .profile-card {
+  width: 50%;
+  align-items: center;
+  border-width: 2px;
+  border-width: 0;
+}
+
+.Profile .profile-img {
+  width: 100px;
+  height: auto;
+  margin: 0 0 10px 10px;
+}
+
+/* ----------------------- Courses ------------------ */
+.course-card {
+  font-family: var(--font-family);
+}
+
+/* ----------------------- Analysis ------------------ */
+
+
+/*-------------------------- Profile page styles --------------------------*/
+.profile-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; 
+  margin: 0;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  width: 900px;
+  height: 700px;
+}
+
+.profile-card h1  {
+  font-size: 35px;
+  font-weight: bold;
+  margin: 10px 0;
+  padding-right: 40em; 
+}
+
+.profile-card p {
+  font-size: 20px;
+  color: #555;
+  margin-bottom: 20px;
+  padding-right: 30em;
+  text-align: left;
+}
+
+.profile-card button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  margin: 2em;
+}
+
+.profile-card button:hover {
+  background-color: #0056b3;
+}
+
+.password-change-form {
+  display: block;
+  justify-content: space-between;
+  align-items: center;
 }

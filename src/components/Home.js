@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Card, CardBody } from 'react-bootstrap';
+import { Container, Card } from 'react-bootstrap';
 import HomeCarousel from './HomeCarousel';
 import ListGroup from 'react-bootstrap/ListGroup';
 import CardGroup from 'react-bootstrap/CardGroup';
@@ -13,10 +13,10 @@ import { flow } from './flow';
 
 function Home() {
   return (
-    <body>
+    <div>
       <section className="banner">
         <Container className='banner-text'>
-          <h1 class="display-4">
+          <h1 className="display-4">
             “Tell me and I forget, teach me and I may remember, involve me and I learn.” — Benjamin Franklin            <br></br>
           </h1>
         </Container>
@@ -88,7 +88,7 @@ function Home() {
 
 
 
-    </body>
+    </div>
   );
 }
 
