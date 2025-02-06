@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import Chat from './Chat';
 
 function CoursePage() {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
+  // Default bot
   const [botType, setBotType] = useState('Tutor');
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
 
-  // Fetch course details
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         const response = await fetch(`http://localhost:5000/courses/${courseId}`);
         const data = await response.json();
-
-        // Set course data
         if (response.ok) {
           setCourse(data);
         } else {
@@ -25,49 +22,8 @@ function CoursePage() {
         console.error('Error fetching course:', error);
       }
     };
-
     fetchCourse();
   }, [courseId]);
-
-  // Handle sending chat messages
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-
-    if (input.trim()) {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: 'user', text: input },
-      ]);
-
-      try {
-        const response = await fetch('http://localhost:5000/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            botType,
-            prompt: input,
-            courseId,
-          }),
-        });
-
-        const data = await response.json();
-
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { sender: 'ai', text: data.response || 'No response' },
-        ]);
-      } catch (error) {
-        console.error('Error during chat:', error);
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { sender: 'ai', text: 'There was an error processing your request.' },
-        ]);
-      }
-
-      setInput('');
-    }
-  };
 
   return (
     <div className="course-page">
@@ -75,47 +31,41 @@ function CoursePage() {
         {course ? (
           <>
             <h2>{course.course_title}</h2>
-            <p>{course.course_description}</p>
             <p>Credits: {course.credits}</p>
+            <h3>Lectures</h3>
+            <ul>
+              {course.lectures.map((lecture) => (
+                <li key={lecture.lecture_id}>
+                  <strong>{lecture.lecture_title}</strong> - <a href={lecture.video_link}>Watch</a>
+                </li>
+              ))}
+            </ul>
+            <h3>Assignments</h3>
+            <ul>
+              {course.assignments.map((assignment) => (
+                <li key={assignment.assignment_id}>
+                  <strong>{assignment.assignment_title}</strong> - Max Score: {assignment.max_score}
+                </li>
+              ))}
+            </ul>
           </>
         ) : (
           <p>Loading course information...</p>
         )}
       </div>
-      <div className="ai-chat">
-        <h3>AI Chat</h3>
-        <select
-          value={botType}
-          onChange={(e) => setBotType(e.target.value)}
-          className="bot-type-selector"
-        >
+      
+      <label>
+        Select AI Bot Type:
+        <select value={botType} onChange={(e) => setBotType(e.target.value)} className="bot-type-selector">
           <option value="Tutor">Tutor</option>
           <option value="Mentor">Mentor</option>
           <option value="Co-Learner">Co-Learner</option>
         </select>
-        <div className="chat-messages">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`chat-message ${message.sender}`}
-            >
-              {message.text}
-            </div>
-          ))}
-        </div>
-        <form onSubmit={handleSendMessage}>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question..."
-          />
-          <button type="submit">Send</button>
-        </form>
-      </div>
+      </label>
+
+      <Chat botType={botType} courseId={courseId} />
     </div>
   );
 }
 
 export default CoursePage;
-

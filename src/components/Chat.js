@@ -1,25 +1,43 @@
 import React, { useState } from 'react';
 
-function Chat() {
+// Trying something a bit different... 
+// Including course ID and beginning to consolidate code as per Seth's request
+function Chat({ botType, courseId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
 
-  const handleSendMessage = (e) => {
+  // Send user messge to backend for OpenAI API calls
+  const handleSendMessage = async (e) => {
     e.preventDefault();
+
     if (input.trim()) {
-      // Add the user's message to the chat
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: 'user', text: input },
-        { sender: 'ai', text: "Hey! I'm your AI tutor! This feature isn't quite functional yet... but it will be soon!" },
-      ]);
+      // Add user message
+      setMessages((prevMessages) => [...prevMessages, { sender: 'user', text: input }]);
+
+      // Send message to backend
+      try {
+        const response = await fetch('http://localhost:5000/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ botType, prompt: input, courseId }),
+        });
+
+        // Handle the backend response 
+        const data = await response.json();
+        setMessages((prevMessages) => [...prevMessages, { sender: 'ai', text: data.response || 'No response' }]);
+      } catch (error) {
+        console.error('Error during chat', error);
+        setMessages((prevMessages) => [...prevMessages, { sender: 'ai', text: 'There was an error processing your request' }]);
+      }
+
       setInput('');
     }
   };
 
   return (
-    <section className="chat-section">
-      <h2>AI Chat</h2>
+    <div className="ai-chat">
+      <h3>AI Chat</h3>
       <div className="chat-messages">
         {messages.map((message, index) => (
           <div key={index} className={`chat-message ${message.sender}`}>
@@ -28,18 +46,11 @@ function Chat() {
         ))}
       </div>
       <form onSubmit={handleSendMessage}>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-        />
+        <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask a question..." />
         <button type="submit">Send</button>
       </form>
-    </section>
+    </div>
   );
 }
 
 export default Chat;
-
-
