@@ -28,7 +28,7 @@ function Footer() {
           </div>
         </div>
       </div>
-      <a href="#" class="back-to-top d-flex align-items-center justify-content-center active">
+      <a href="#" className="back-to-top d-flex align-items-center justify-content-center active">
                   <i className="bi bi-arrow-up"></i>
       </a>
     </footer>

@@ -37,47 +37,43 @@ function Login() {
     }
   };
 
-  return (
-    <section className="d-flex justify-content-center align-items-center flex-column" style={{ height: '100vh' }}>
-      {/* Login title centered above the card */}
-      <h1 style={{
-        marginBottom: '40px', 
-        textAlign: 'center', 
-        color: '#003466', 
-        fontSize: '2rem', 
-        fontWeight: 'bold'
-      }}>Login</h1>
+return (
+  <section className="d-flex justify-content-center align-items-center flex-column" style={{ height: '100vh' }}>
+    {/* Login title centered above the card */}
+    <h1>Login</h1>
 
-      <Card className="login-card text-center shadow-sm p-3">
-        <Card.Body>
-          <Form onSubmit={handleLogin}>
-            {/* User ID field */}
-            <Form.Group controlId="userId" className="mb-3">
-              <Form.Label>User ID</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter user ID"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-              />
-            </Form.Group>
+    <Card className="form-container">
+      <Card.Body>
+        <Form className="login-form" onSubmit={handleLogin}>
+          {/* User ID field */}
+          <Form.Group controlId="userId" className="mb-3">
+            <Form.Label>User ID</Form.Label>
+            <Form.Control
+              className='input'
+              type="text"
+              placeholder="Enter user ID"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+            />
+          </Form.Group>
 
-            {/* Password field */}
-            <Form.Group controlId="password" className="mb-3">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </Form.Group>
+          {/* Password field */}
+          <Form.Group controlId="password" className="mb-3">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              className='input'
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </Form.Group>
 
-            {/* Submit button */}
-            <Button variant="primary" type="submit" className="w-100">
-              Login
-            </Button>
-          </Form>
+          {/* Submit button */}
+          <Button type="submit" className="login-button">
+            Login
+          </Button>
+        </Form>
 
           <p className="mt-3">{message}</p>
         </Card.Body>

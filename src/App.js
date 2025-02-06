@@ -10,6 +10,9 @@ import Chat from './components/Chat';
 import Courses from './components/Courses';
 import Signup from './components/Signup';
 import CoursePage from './components/CoursePage';
+import Dashboard from './components/Dashboard';
+import Profile from './components/Profile';
+
 import './styles.css';  
 
 
@@ -27,7 +30,8 @@ function App() {
 
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
-
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/Profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         </Routes>
         <Footer />
       </div>

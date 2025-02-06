@@ -6,10 +6,13 @@ function Courses() {
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
+
     // Fetch course data from the backend
     fetch('http://localhost:5000/courses')
       .then((response) => response.json())
-      .then((data) => setCourses(data))
+      .then((data) => {
+        setCourses(data);
+      })
       .catch((error) => console.error('Error fetching courses:', error));
   }, []);
 

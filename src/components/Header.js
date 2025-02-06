@@ -41,6 +41,11 @@ function Header() {
         <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-center">
           <Nav className="d-flex mx-auto">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
+            {user ? (
+              <><Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link></>
+            ) : (
+              <></>
+            )}
             <Nav.Link as={Link} to="/courses">Courses</Nav.Link>
             <Nav.Link as={Link} to="/about">About Us</Nav.Link>
           </Nav>
@@ -48,12 +53,13 @@ function Header() {
           <Nav className="ms-auto">
             {user ? (
               <>
-                <Nav.Link as="span">
-                  Welcome, {user.first_name} {user.last_name}!
+                <Nav.Link as={Link} to="/profile">
+                <i className="bi bi-person"></i> Profile
                 </Nav.Link>
                 <Nav.Link as="span" onClick={handleLogout}>
                   <i className="bi bi-box-arrow-right"></i> Logout
                 </Nav.Link>
+                
               </>
             ) : (
               <>
