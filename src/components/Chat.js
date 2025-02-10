@@ -37,19 +37,25 @@ function Chat({ botType, courseId }) {
 
   return (
     <div className="ai-chat">
-      <h3>AI Chat</h3>
       <div className="chat-messages">
         {messages.map((message, index) => (
           <div key={index} className={`chat-message ${message.sender}`}>
-            {message.text}
+            <div className="message-bubble">{message.text}</div>
           </div>
         ))}
       </div>
-      <form onSubmit={handleSendMessage}>
-        <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask a question..." />
+      <form onSubmit={handleSendMessage} className="chat-input">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask a question..."
+          rows="1"
+          className="chat-textarea"
+        />
         <button type="submit">Send</button>
       </form>
     </div>
+
   );
 }
 

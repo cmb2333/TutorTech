@@ -52,35 +52,35 @@ const Signup = () => {
         fontWeight: 'bold'
       }}>Sign Up</h1>
 
-      <Card className="login-card text-center shadow-sm p-3">
+      <Card className="form-container">
         <Card.Body>
-        <Form onSubmit={handleSignup}>
+        <Form className="login-form" onSubmit={handleSignup}>
           <Form.Group controlId="userId" className="mb-3">
             <Form.Label>User ID</Form.Label>
-            <Form.Control type="text" placeholder="Enter user ID" value={userId} onChange={(e) => setUserId(e.target.value)} />
+            <Form.Control className="input" type="text" placeholder="Enter user ID" value={userId} onChange={(e) => setUserId(e.target.value)} />
           </Form.Group>
 
           <Form.Group controlId="email" className="mb-3">
             <Form.Label>Email</Form.Label>
-            <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Form.Control className="input" type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </Form.Group>
 
           <Form.Group controlId="firstName" className="mb-3">
             <Form.Label>First Name</Form.Label>
-            <Form.Control type="text" placeholder="Enter first name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            <Form.Control className="input" type="text" placeholder="Enter first name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
           </Form.Group>
 
           <Form.Group controlId="lastName" className="mb-3">
             <Form.Label>Last Name</Form.Label>
-            <Form.Control type="text" placeholder="Enter last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            <Form.Control className="input" type="text" placeholder="Enter last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
           </Form.Group>
 
           <Form.Group controlId="password" className="mb-3">
             <Form.Label>Password</Form.Label>
-            <Form.Control type="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Form.Control className="input" type="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </Form.Group>
 
-          <Button variant="primary" type="submit" className="w-100">Register</Button>
+          <Button type="submit" className="login-button">Register</Button>
         </Form>
 
           <p className="mt-3">{message}</p>
