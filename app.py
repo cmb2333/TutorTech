@@ -370,6 +370,61 @@ def chat():
         print(f"Error fetching AI response: {e}")
         return jsonify({"error": "Failed to process the request"}), 500
 
+# ------------------------- Course Enrollment -------------------------------------- 
+@app.route('/enroll', methods=['POST'])
+def enroll_course():
+    data = request.json
+    user_id = data.get("user_id")
+    course_code = data.get("course_code")
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if already enrolled
+        cursor.execute("SELECT * FROM enrollments WHERE user_id = %s AND course_code = %s", (user_id, course_code))
+        if cursor.fetchone():
+            return jsonify({"message": "Already enrolled in this course"}), 400
+        
+        # enroll
+        cursor.execute(
+            "INSERT INTO enrollments (user_id, course_code) VALUES (%s, %s)",
+            (user_id, course_code)
+        )
+        conn.commit()
+        return jsonify({"message": "Enrolled successfully"}), 200
+
+    except Exception as e:
+        print(f"Error during enrollment: {e}")
+        return jsonify({"message": "Server error"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/enrolled-courses/<user_id>', methods=['GET'])
+def get_enrolled_courses(user_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get enrolled courses for a user
+        cursor.execute("""
+            SELECT ci.course_code, ci.course_title, ci.credits
+            FROM course_information ci
+            JOIN enrollments e ON ci.course_code = e.course_code
+            WHERE e.user_id = %s
+        """, (user_id,))
+        
+        courses = cursor.fetchall()
+        return jsonify(courses), 200
+
+    except Exception as e:
+        print(f"Error fetching enrolled courses: {e}")
+        return jsonify({"message": "Server error"}), 500
+    finally:
+        if conn:
+            conn.close()
+
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
 

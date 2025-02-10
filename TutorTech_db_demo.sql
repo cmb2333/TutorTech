@@ -59,6 +59,13 @@ CREATE TABLE IF NOT EXISTS student_information
 	user_password VARCHAR(20) NOT NULL
 );
 
+CREATE TABLE enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    user_id VARCHAR(50) REFERENCES student_information(user_id),
+    course_code VARCHAR(50) REFERENCES course_information(course_code),
+    enrollment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- course_information MOCK DATA inserts ----------------------------------------------------------------------
 INSERT INTO course_information (course_code, course_title, credits)
 	VALUES ('EE499', 'Contemporary Developments: Microelectronics Metrology', 3);
@@ -133,4 +140,8 @@ INSERT INTO student_information (user_id, first_name, last_name, email, user_pas
     VALUES ('db3', 'Darnell', 'Brady', 'db3@gmail.com', 'dbPassword');
 -------------------------------------------------------------------------------------------------------------
 
-
+INSERT INTO enrollments (user_id, course_code) VALUES 
+('jh1', 'EE499'),
+('jh1', 'EE599'),
+('jh1', 'PHY530'),
+('jh1', 'DOE');

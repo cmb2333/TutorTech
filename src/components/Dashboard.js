@@ -7,19 +7,17 @@ function Dashboard() {
   const [courses, setCourses] = useState([]);
   const { user, setUser } = useUser(); 
 
-  // TODO: Implement functionality for getting only the user's enrolled courses
   // TODO: Implement Analysis functionality using user data
 
+  // Get only the users enrolled courses
   useEffect(() => {
-    // Fetch course data from the backend
-    fetch('http://localhost:5000/courses')
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Fetched courses:', data); // Log fetched courses
-        setCourses(data);
-      })
-      .catch((error) => console.error('Error fetching courses:', error));
-    }, []);
+    if (user) {
+      fetch(`http://localhost:5000/enrolled-courses/${user.user_id}`)
+        .then((response) => response.json())
+        .then((data) => setCourses(data))
+        .catch((error) => console.error('Error fetching enrolled courses:', error));
+    }
+  }, [user]);
 
     return(
         <div>
