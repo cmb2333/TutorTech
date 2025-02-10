@@ -1,5 +1,5 @@
 -- Table: course_information
--- DROP TABLE IF EXISTS course_information;
+DROP TABLE IF EXISTS course_information;
 CREATE TABLE IF NOT EXISTS course_information
 (
 	-- course code ex. EE499
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS course_information
 );
 
 -- Table: course_lectures
--- DROP TABLE IF EXISTS course_lectures;
+DROP TABLE IF EXISTS course_lectures;
 CREATE TABLE IF NOT EXISTS course_lectures
 (
 	-- lecture id
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS course_lectures
 );
 
 -- Table: course_assignments
--- DROP TABLE IF EXISTS course_assignments;
+DROP TABLE IF EXISTS course_assignments;
 CREATE TABLE IF NOT EXISTS course_assignments
 (
     -- assignment id
