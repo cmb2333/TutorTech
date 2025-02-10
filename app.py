@@ -5,9 +5,9 @@ from psycopg2.extras import RealDictCursor
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-
 import logging
-
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, VectorParams
 
 # Load environment variables
 load_dotenv()
@@ -23,6 +23,18 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_cred
 
 # Configure logging 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+# Initialize Qdrant
+qdrant_client = QdrantClient("localhost", port=6333)
+
+# Create a collection if it doesn't exist
+# 1536 is the size for OpenAI embeddings
+collection_name = "tutortech_collection"
+if not qdrant_client.collection_exists(collection_name):
+    qdrant_client.create_collection(
+        collection_name=collection_name,
+        vectors_config=VectorParams(size=1536, distance=Distance.COSINE)
+    )
 
 def get_db_connection():
     try:
@@ -138,7 +150,7 @@ def session():
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT first_name, last_name, email FROM student_information WHERE user_id = %s",
+            "SELECT user_id, first_name, last_name, email FROM student_information WHERE user_id = %s",
             (user_id,)
         )
         user_info = cursor.fetchone()
@@ -331,9 +343,9 @@ def chat():
 
         # AI bot customization
         bot_prompts = {
-            "Tutor": "Provide comprehensive responses with either detailed breakdowns, step-by-step explanations, or examples. Your tone should be formal and instructional but still engaging. Use a step by step approach and break complex concepts into smaller parts. Rather than over explaining everything about a concept, ask if the user would like to elabotate.",
-            "Mentor": "Provide practical and strategic guidance to help the user approach their query effectively. Briefly elaborate. Offer real-world relevance only if it directly enhances understanding. Focus on best practices, key considerations, and potential challenges, and suggest actionable steps where applicable. Do not over-explain. Provide enough insight to help the user move forward with confidence.",
-            "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions or bulleted lists describing the most important facts. Some detail is okay, but the response should be concise.",
+            "Tutor": "Provide structured, step-by-step explanations in full sentences without using special characters like newlines, bullet points, or bold text. Keep explanations detailed but concise, ensuring readability in a continuous paragraph format. Encourage follow-up questions for further elaboration.",
+            "Mentor": "Combine concise answers with practical steps and or real-life examples where applicable. Maintain a balance between elaboration and clarity. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
+            "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions describing only the most important facts. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
         }
 
         system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
