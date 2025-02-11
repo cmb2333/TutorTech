@@ -264,19 +264,18 @@ body {
 
 /* ----------------------- About Page  ----------------------- */
 .about-page {
-  background-color: #f4f4f4;
   padding: 2rem 0;
 }
 
-.breadcrumbs {
-  background-color: #444444;
-  color: #fff;
+.breadcrumbs .container {
   padding: 1rem 0;
   text-align: center;
+  display: block;
+  max-width: fit-content;
 }
 
 .breadcrumbs h2 {
-  color: #444444;
+  color: var(--primary-color);
   font-size: 2rem;
   margin-bottom: 0.5rem;
 }
@@ -295,25 +294,24 @@ body {
 
 .vision-mission-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   gap: 2rem; 
 }
 
 .vision-mission-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  flex: 1;
+  min-height: 100%;
   color: #444444;
-}
-
-.tutortech-title {
-  font-size: 26px; 
-  font-weight: 600;
-  color: #444444; 
-  margin-top: 1rem;
 }
 
 .vision-heading, .mission-heading, .key-features-heading, .key-requirements-heading {
   font-size: 1.6rem;
-  color: rgb(0, 0, 139); 
+  color: var(--primary-color); 
   margin-top: 1rem;
   border-bottom: 2px solid #444444; 
 }
@@ -336,7 +334,7 @@ body {
 
 .vision-mission-text ul li::before {
   content: '•';
-  color: rgb(0, 0, 139); 
+  color: var(--primary-color); 
   margin-right: 10px;
 }
 
@@ -346,12 +344,10 @@ body {
   margin-top: 1.5rem; 
 }
 
-.about-image {
-  width: 100%;
+ .vision-mission-row .about-image {
   max-width: 500px; 
   height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
 }
 
 @media (max-width: 767px) {
@@ -373,44 +369,46 @@ body {
   }
 }
 
-.breadcrumbs {
-  background-color: #00274d;
-  padding: 2rem 0;
-}
-
-.breadcrumbs .container {
-  text-align: center;
-}
-
-.breadcrumbs h2 {
-  color: #FFD200;
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-.breadcrumbs p {
-  color: white;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin: 0 auto;
-  max-width: 800px;
-}
-
 /* ---------------------------- Course Page ---------------------------- */
 .course-page {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 20px;
   padding: 20px;
 }
 
 .course-info {
   flex: 2;
+  overflow: scroll;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #f9f9f9;
+  min-width: 200px;
+}
+
+.courses-page .course-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+  min-height: 400px;
+}
+
+.course-card .card-body {
+  flex-grow: 1; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+}
+
+.course-card .card-text {
+  flex-grow: 1; 
+}
+
+.course-card img {
+  height: 180px; 
+  object-fit: cover; 
 }
 
 
@@ -421,8 +419,7 @@ body {
   padding: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  min-width: 200px;
-  
+  flex: 0 0 250px;
 }
 
 .sidebar-link {
@@ -453,7 +450,7 @@ body {
 /* ------------------------ AI Chat ---------------------------- */
 /* Position bot section on the right */
 .bot-section {
-  width: 400px;
+  width: 25%;
   padding: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -488,8 +485,8 @@ body {
 /* Chat Container */
 .ai-chat {
   width: 100%;
-  max-width: 450px; /* More width */
-  height: 550px; /* Taller */
+  max-width: 300px;
+  height: 550px; 
   padding: 15px;
   border-radius: 10px;
   background-color: #f9f9f9;
@@ -514,13 +511,13 @@ body {
 /* User Messages - Align to Right */
 .chat-message.user {
   display: flex;
-  justify-content: flex-end; /* Moves message to the right */
+  justify-content: flex-end; 
 }
 
 /* AI Messages - Align to Left */
 .chat-message.ai {
   display: flex;
-  justify-content: flex-start; /* Moves message to the left */
+  justify-content: flex-start; 
 }
 
 /* AI Message Bubble */
@@ -545,11 +542,12 @@ body {
 /* Chat Input Area */
 .chat-input {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   gap: 10px;
   margin-top: 10px;
   padding: 10px;
   border-top: 1px solid #ddd;
+  align-items: center;
 }
 
 /* Auto-growing Text Input */
@@ -559,21 +557,23 @@ body {
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
-  min-height: 45px;
+  min-height: 150px;
   max-height: 200px;
   overflow-y: auto;
   resize: none;
+  max-width: 300px;
+  width: 100%;
 }
 
 /* Send Button */
 .chat-input button {
-  padding: 12px 20px;
+  padding: 4px 20px;
   border: none;
   border-radius: 8px;
   background-color: var(--primary-color);
   color: white;
   font-size: 16px;
-  cursor: pointer;
+  max-width: 75%;
 }
 
 button:hover {
@@ -608,12 +608,13 @@ button:hover {
   margin: 0 0 10px 10px;
 }
 
-/* ----------------------- Courses ------------------ */
-.course-card {
-  font-family: var(--font-family);
+/* ----------------------- Dashboard Courses ------------------ */
+.UserCourses {
+  display: flex;
+  justify-content: space-between;
 }
 
-/* ----------------------- Analysis ------------------ */
+/* ----------------------- Dashboard Analysis ------------------ */
 
 
 /*-------------------------- Profile page styles --------------------------*/
@@ -696,5 +697,15 @@ footer {
   color: black;
   cursor: pointer;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s;
+}
+
+.back-to-top.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.back-to-top.active {
+  opacity: 1;
+  visibility: visible;
 }

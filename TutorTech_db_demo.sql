@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS course_information
 	-- course title ex. Metrology
 	course_title VARCHAR(100) NOT NULL,
 	-- total credits of course
-	credits INT NOT NULL
+	credits INT NOT NULL,
+	-- Description of course
+	course_description TEXT
 );
 
 -- Table: course_lectures
@@ -67,23 +69,23 @@ CREATE TABLE enrollments (
 );
 
 -- course_information MOCK DATA inserts ----------------------------------------------------------------------
-INSERT INTO course_information (course_code, course_title, credits)
-	VALUES ('EE499', 'Contemporary Developments: Microelectronics Metrology', 3);
+INSERT INTO course_information (course_code, course_title, credits, course_description)
+	VALUES ('EE499', 'Contemporary Developments: Microelectronics Metrology', 3, "This course offers a comprehensive study of metrology, focusing on precise measurement and its vital role across industries. Students will explore measurement systems, calibration techniques, uncertainty, and traceability to ensure accuracy and consistency. The course covers error analysis, proper use of metrology tools, and statistical methods for evaluating data. Students will gain hands-on experience with industry-standard equipment, applying metrology principles to real-world scenarios.");
 
-INSERT INTO course_information (course_code, course_title, credits)
-	VALUES ('EE599', 'Device Physics and Characterization', 3);
+INSERT INTO course_information (course_code, course_title, credits, course_description)
+	VALUES ('EE599', 'Device Physics and Characterization', 3, "This course provides an overview of the fundamental physics governing the electrical, optical, and thermal properties of semiconductor devices. Students will also examine the role of semiconductor materials in modern technology and their applications in electronic and photonic devices. This course is intended for graduate students in electrical engineering, materials science, and physics programs. Prerequisites include courses in semiconductor physics and electrical measurements at the undergraduate level.");
 
-INSERT INTO course_information (course_code, course_title, credits)
-	VALUES ('PHY530', 'Spectroscopy', 3);
+INSERT INTO course_information (course_code, course_title, credits, course_description)
+	VALUES ('PHY530', 'Spectroscopy', 3, "This graduate-level course provides an in-depth overview of spectroscopic techniques used to probe the electronic, vibrational, rotational, and magnetic structure of atoms, molecules, and solids. Theoretical foundations of atomic and molecular spectroscopy are developed, including treatment of absorption, emission, scattering of electromagnetic radiation.");
 
-INSERT INTO course_information (course_code, course_title, credits)
-	VALUES ('DOE', 'Design of Experiments', 3);
+INSERT INTO course_information (course_code, course_title, credits, course_description)
+	VALUES ('DOE', 'Design of Experiments', 3, "This chapter introduces the fundamental concepts and methods of Design of Experiments (DOE), a vital tool used to improve processes and optimize results in various fields. The chapter covers topics such as factorial designs, response surface methods, and statistical techniques for analyzing experimental data. By the end of this chapter, students will understand how to design efficient experiments that yield maximum information with minimal resources. Through real-world examples, students will explore how DOE can be applied to identify critical factors, streamline processes, and drive innovation in engineering and research.");
 
-INSERT INTO course_information (course_code, course_title, credits)
-	VALUES ('EGRFE', 'Fundamental Engineering', 3);
+INSERT INTO course_information (course_code, course_title, credits, course_description)
+	VALUES ('EGRFE', 'Fundamental Engineering', 3, "The FE (Fundamentals of Engineering) exam is the first step in the process of becoming a licensed professional engineer (PE). It is a computer-based exam administered year-round at NCEES-approved Pearson VUE test centers.");
 
-INSERT INTO course_information (course_code, course_title, credits)
-	VALUES ('SPC', ' Statistical Process Control', 3);
+INSERT INTO course_information (course_code, course_title, credits, course_description)
+	VALUES ('SPC', ' Statistical Process Control', 3, "This course provides an in-depth introduction to Statistical Process Control (SPC), a key methodology used to monitor and control manufacturing processes. Topics covered include the principles of variability, control charts, process capability analysis, and the use of statistical methods to ensure product quality and process stability. Through practical examples and case studies, students will learn how to implement SPC techniques to detect and reduce variations in processes, improve quality control, and enhance operational efficiency in a range of industries.");
 
 -------------------------------------------------------------------------------------------------------------
 
