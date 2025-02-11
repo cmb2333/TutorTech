@@ -3,13 +3,6 @@ import { Container, Card } from 'react-bootstrap';
 import HomeCarousel from './HomeCarousel';
 import ListGroup from 'react-bootstrap/ListGroup';
 import CardGroup from 'react-bootstrap/CardGroup';
-// import chatbot and conversation flow
-import Chatbot from 'react-chatbotify';
-import { flow } from './flow';
-
-
-
-
 
 function Home() {
   return (
@@ -17,7 +10,7 @@ function Home() {
       <section className="banner">
         <Container className='banner-text'>
           <h1 className="display-4">
-            “Tell me and I forget, teach me and I may remember, involve me and I learn.” — Benjamin Franklin            <br></br>
+            Tell me and I forget, teach me and I may remember, involve me and I learn            <br></br>
           </h1>
         </Container>
       </section>
@@ -77,8 +70,6 @@ function Home() {
               </Card.Body>
             </Card>*/}
           </CardGroup>
-          {/* Chatbot at the bottom of the page */}
-        <Chatbot flow={flow} />
         </Container>
       </section>
 

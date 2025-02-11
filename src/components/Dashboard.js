@@ -38,11 +38,11 @@ function Dashboard() {
                         </Card>
                     </Col>
                     <Col>
+                    <h1>Courses</h1>
                         <Container className='UserCourses'>
-                            <h1>Courses</h1>
                             <Row>
                                 {courses.map((course, index) => (
-                                <Col md={4} key={index}>
+                                <Col md={4} key={index} className="mb-4">
                                     <Link to={`/courses/${course.course_code}`}>
                                     <Card className="course-card h-100">
                                         <Card.Img
@@ -52,12 +52,19 @@ function Dashboard() {
                                         />
                                         <Card.Body className='d-flex flex-column'>
                                             <Card.Title className="fs-6">{course.course_title}</Card.Title>
+                                            {/*
+                                            
+                                            ------------------------------------
+                                            This snippet will be used in the FUTURE to display course progress
+
                                             <div className="mt-auto">
                                                 <ProgressBar
                                                     now={Math.random() * 100}
                                                     label={`${Math.floor(Math.random() * 100)}%`}
                                                 />
                                             </div>
+                                            
+                                            */}
                                         </Card.Body>
                                     </Card>
                                     </Link>
@@ -74,6 +81,13 @@ function Dashboard() {
                         <p>Course Activity - Create dynamic radar chart showing time spent on courses</p>
                     </Container>
                 </Row>
+                <Row>
+                    <Container className='Grades'>
+                        <h1>Grades</h1>
+                        <p>This feature will be implemented soon.</p>
+                    </Container>
+                </Row>
+
             </Container>
         </div>
     );
