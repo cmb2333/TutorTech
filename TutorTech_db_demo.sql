@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS course_information
 	-- total credits of course
 	credits INT NOT NULL,
 	-- Description of course
-	course_description VARCHAR(400) NOT NULL
+	course_description TEXT
 );
 
 -- Table: course_lectures
