@@ -12,7 +12,7 @@ import Signup from './components/Signup';
 import CoursePage from './components/CoursePage';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
-
+import Contact from './components/Contact';
 import './styles.css';  
 
 
@@ -28,6 +28,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/courses/:courseId" element={<CoursePage />} />
           <Route path="/courses" element={<Courses />} />
+          <Route path="/contact" element={<Contact />} />
 
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
