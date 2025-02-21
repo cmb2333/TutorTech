@@ -3,10 +3,8 @@ import { Container, Card } from 'react-bootstrap';
 import HomeCarousel from './HomeCarousel';
 import ListGroup from 'react-bootstrap/ListGroup';
 import CardGroup from 'react-bootstrap/CardGroup';
-
 // AOS library
 import AOS from 'aos';
-
 // AOS styles
 import 'aos/dist/aos.css';
 
