@@ -43,10 +43,10 @@ function Contact() {
     e.preventDefault(); 
 
     emailjs.sendForm(
-      'service_id', // your EmailJS Service ID
-      'template_id', // your EmailJS Template ID
-      form.current, // use the form reference
-      'public_key' // your EmailJS User ID
+      'EMAILJS_SERVICE_ID', // your EmailJS Service ID
+      'EMAILJS_TEMPLATE_ID', // your EmailJS Template ID
+      form.current,            // data from form
+      'EMAILJS_PUBLIC_KEY' // your EmailJS User ID
     )
     .then(
       (result) => {
@@ -62,7 +62,7 @@ function Contact() {
   };
 
   return (
-    <section className="about-page">
+    <section className="contact-page">
       <div className="container-fluid p-0">
         <div className="styled-page">
           <div className="map-container">
