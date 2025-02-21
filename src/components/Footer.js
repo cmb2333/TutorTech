@@ -1,6 +1,24 @@
 import React from 'react';
+import { useState, useEffect } from "react";
 
-function Footer() {
+const Footer = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Function to check scroll position
+  const toggleVisibility = () => {
+    if (window.scrollY > 100) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  };
+
+  // Add event listener on scroll
+  useEffect(() => {
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
   return (
     <footer className="footer text-light">
       <div className="container py-4">
@@ -28,8 +46,15 @@ function Footer() {
           </div>
         </div>
       </div>
-      <a href="#" className="back-to-top d-flex align-items-center justify-content-center active">
-                  <i className="bi bi-arrow-up"></i>
+      
+      {/* Back to Top Button */}
+      <a
+        href="#"
+        className={`back-to-top d-flex align-items-center justify-content-center ${
+          isVisible ? "active" : "hidden"
+        }`}
+      >
+        <i className="bi bi-arrow-up"></i>
       </a>
     </footer>
   );

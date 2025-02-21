@@ -19,8 +19,13 @@
     "url": "https://github.com/cmb2333/TutorTech/issues"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "aos": "^2.3.4",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "emailjs-com": "^3.2.0",
     "openai": "^4.80.1",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.5",

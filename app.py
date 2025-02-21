@@ -259,7 +259,7 @@ def get_courses():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT course_code, course_title, credits FROM course_information")
+        cursor.execute("SELECT course_code, course_title, credits, course_description FROM course_information")
         courses = cursor.fetchall()
 
         # Return fetched courses as JSON
@@ -427,4 +427,3 @@ def get_enrolled_courses(user_id):
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
-

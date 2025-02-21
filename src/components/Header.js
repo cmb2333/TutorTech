@@ -48,6 +48,7 @@ function Header() {
             )}
             <Nav.Link as={Link} to="/courses">Courses</Nav.Link>
             <Nav.Link as={Link} to="/about">About Us</Nav.Link>
+            <Nav.Link as={Link} to="/contact">Contact</Nav.Link>
           </Nav>
 
           <Nav className="ms-auto">

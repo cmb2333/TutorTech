@@ -6,3 +6,9 @@ node_modules/
 
 # Ignore env file
 .env
+
+# Ignore venv file
+venv/
+
+# Ignore py cache
+__pycache__/
