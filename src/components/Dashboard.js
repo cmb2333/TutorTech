@@ -47,7 +47,7 @@ function Dashboard() {
                                     <Card className="course-card h-100">
                                         <Card.Img
                                         variant="top"
-                                        src="/assets/exampleCourse.jpg"
+                                        src={`/assets/courses/${course.course_code}.jpg`}
                                         alt={`Image for ${course.course_title}`}
                                         />
                                         <Card.Body className='d-flex flex-column'>

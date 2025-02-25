@@ -51,9 +51,14 @@ function Courses() {
         {courses.map((course, index) => (
           <Col md={4} key={index}>
             <Card className="course-card">
-              <Card.Img variant="top" src="/assets/exampleCourse.jpg" alt={`Image for ${course.course_title}`} />
+            <Card.Img 
+              variant="top" 
+              src={`/assets/courses/${course.course_code}.jpg`} 
+              alt={`Image for ${course.course_title}`} 
+              onError={(e) => e.target.src = "/assets/courses/exampleCourse.jpg"} 
+            />
               <Card.Body>
-                <Card.Title>{course.course_title}</Card.Title>
+                <Card.Title>{course.course_code} - {course.course_title}</Card.Title>
                 <Card.Text>{course.course_description}</Card.Text>
                 <strong>Credits:</strong> {course.credits}
                 {enrolledCourses.includes(course.course_code) ? (
