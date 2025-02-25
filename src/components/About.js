@@ -1,35 +1,55 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Row, Col, Container } from 'react-bootstrap';
-import aboutimg from '../assets/aboutimg.jpg'; 
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faKey, faEye, faRocket } from '@fortawesome/free-solid-svg-icons';
+import "./styles/about.css"
 
 function About() {
+  useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
+
   return (
-    <section className='about-page'>
-      {/* Breadcrumbs Section */}
-      <div className="breadcrumbs aos-init aos-animate" data-aos="fade-in">
-        <div className="container">
-           {/*  'About Us' */}
-          <h2>About Us</h2>
-          <p>TutorTech aims to provide a comprehensive, personalized learning experience for students by offering real-time, adaptive learning resources. The platform is developed by a team of students interested in AI and education technology, inspired by initiatives like the Metrology Research and Teaching Laboratory (MRTL). MRTL's interdisciplinary approach to research and education has influenced TutorTech’s design, focusing on creating an intuitive and responsive academic support system. TutorTech features tools like interactive assistance, progress tracking, and tailored feedback to meet the unique needs of each student. Focused on bridging the gap between classroom instruction and individual learning, TutorTech ensures that every student has access to the support they need for academic success.</p>
+    <div className="about-body">
+      <section id="about">
+        {/* About Us Section */}
+        <div className="about-1 text-center" data-aos="fade-in">
+          <h1 data-aos="fade-up" data-aos-delay="100">ABOUT US</h1>
+          <p className="breadcrumbs-text" data-aos="fade-up" data-aos-delay="100">
+            TutorTech enhances learning by offering personalized support through adaptive resources, interactive assistance, and progress tracking. Inspired by the Metrology Research and Teaching Laboratory (MRTL), our student-led platform bridges the gap between classroom instruction and individual learning, ensuring students have the tools they need for academic success.
+          </p>
         </div>
-      </div>
 
-      {/* Vision, Mission, and Features Section */}
-      <section className="vision-mission-section">
+        {/* Vision, Mission, and Features Section */}
         <Container>
-          <Row className="vision-mission-row">
-            <Col md={4} className="vision-mission-text">
-              <h3 className="underline vision-heading">Vision</h3>
-              <p>To address the challenge of students feeling under-supported academically, TutorTech is proposed as a web application designed to provide real-time, personalized learning resources that go beyond what is typically available in the classroom. Through features such as interactive AI assistance, progress tracking, and tailored feedback, TutorTech will give students the academic support they need, in a format that adapts to their individual learning needs.</p>
-            </Col>
+          <div className="about-container">
+            {/* Vision Section */}
+            <div className="about-item text-center" data-aos="fade-up" data-aos-delay="200">
+              <FontAwesomeIcon icon={faEye} size="2x" />  
+              <h3>VISION</h3>
+              <hr />
+              <p>
+                TutorTech addresses the challenge of academic under-support by offering real-time, personalized learning resources. With interactive assistance, progress tracking, and tailored feedback, TutorTech adapts to each student's unique learning needs.
+              </p>
+            </div>
 
-            <Col md={4} className="vision-mission-text">
-              <h3 className="underline mission-heading">Mission</h3>
-              <p>The mission of TutorTech is to create a Learning management system (LMS) that uses AI to create personalized learning experiences for registered students. Important features that this LMS will hold is a study partner and tutor powered by AI that will allow students to ask any and all questions they may have to receive various explanations to level up their understanding. Tracking features will also be available to visibly show their progress and areas to improve based on the student’s quizzes, assignments, etc. Any feedback given through this LMS will be generated based on each student and their needs.</p>
-            </Col>
-            
-            <Col md={4} className="vision-mission-text">
-              <h3 className="underline key-features-heading">Key Features</h3>
+            {/* Mission Section */}
+            <div className="about-item text-center" data-aos="fade-up" data-aos-delay="300">
+              <FontAwesomeIcon icon={faRocket} size="2x" />  
+              <h3>MISSION</h3>
+              <hr />
+              <p>
+                TutorTech’s mission is to develop an AI-powered Learning Management System (LMS) that enhances learning through personalized study partners, progress tracking, and targeted feedback to help students succeed academically.
+              </p>
+            </div>
+
+            {/* Key Features Section */}
+            <div className="about-item text-center" data-aos="fade-up" data-aos-delay="400">
+              <FontAwesomeIcon icon={faKey} size="2x" />  
+              <h3>KEY FEATURES</h3>
+              <hr />
               <ul>
                 <li>Personalized AI assistant</li>
                 <li>Performance tracking</li>
@@ -37,24 +57,11 @@ function About() {
                 <li>Personalized feedback</li>
                 <li>AI chat</li>
               </ul>
-            </Col>
-
-            <Col md={4} className="vision-mission-text">
-              <h3 className="underline key-requirements-heading">Key Requirements</h3>
-              <ul>
-                <li>Responsive LMS</li>
-                <li>Engaging User Interface (UI)</li>
-                <li>Real-time grading & progress-tracking</li>
-                <li>Protection of user-data</li>
-                <li>AI-powered adaptive learning</li>
-              </ul>
-            </Col>
-
-            <img src={aboutimg} alt="About TutorTech" className="about-image" />
-          </Row>
+            </div>
+          </div>
         </Container>
       </section>
-    </section>
+    </div>
   );
 }
 
