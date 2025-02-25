@@ -232,7 +232,7 @@ def change_password():
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT * FROM login_information WHERE user_id = %s AND password = %s",
+            "SELECT * FROM student_information WHERE user_id = %s AND user_password = %s",
             (user_id, currentPassword)
         )
         result = cursor.fetchone()
@@ -240,7 +240,7 @@ def change_password():
         if not result:
             return jsonify({"message": "Current Password Invalid"}), 401
         
-        cursor.execute("UPDATE login_information SET password = %s WHERE user_id = %s", (newPassword, user_id))
+        cursor.execute("UPDATE student_information SET user_password = %s WHERE user_id = %s", (newPassword, user_id))
         conn.commit()
         cursor.close()
         conn.close()
@@ -424,6 +424,93 @@ def get_enrolled_courses(user_id):
     finally:
         if conn:
             conn.close()
+
+
+# ------------------------- Assignments -------------------------------------- 
+# Fetch questions for an assignment, including correct answers
+@app.route('/api/assignments/<assignment_id>/questions', methods=['GET'])
+def get_assignment_questions(assignment_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Fetch assignment questions with correct answers
+        cur.execute("""
+            SELECT question_id, question_text, question_type, options, correct_answer, max_points
+            FROM assignment_questions
+            WHERE assignment_id = %s
+        """, (assignment_id,))
+        questions = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        return jsonify(questions)
+    except Exception as e:
+        print(f"Error fetching questions: {e}")
+        return jsonify({"error": "Failed to fetch questions"}), 500
+
+# Grade user answers and calculate scores
+@app.route('/api/assignments/<assignment_id>/submit', methods=['POST'])
+def submit_assignment(assignment_id):
+    user_answers = request.json.get('answers', {})  # user answers submitted
+    results = []
+
+    try:
+        conn = get_db_connection()
+        if not conn:
+            raise Exception("Failed to get database connection")
+
+        # fetch questions from DB
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT question_id, question_text, question_type, options, correct_answer, max_points
+                FROM assignment_questions
+                WHERE assignment_id = %s
+            """, (assignment_id,))
+            questions = cur.fetchall()
+
+        # process each question
+        for question in questions:
+            q_id = str(question['question_id'])
+            user_answer = user_answers.get(q_id)
+            correct_answer = question['correct_answer']
+            max_points = question['max_points']
+
+            # determine points awarded
+            points_awarded = max_points if user_answer == correct_answer else 0
+
+            # append results
+            results.append({
+                "question_id": q_id,
+                "question_text": question['question_text'],
+                "user_answer": user_answer,
+                "correct_answer": correct_answer,
+                "points_awarded": points_awarded,
+                "max_points": max_points,
+                "correct": user_answer == correct_answer
+            })
+
+        # calculate total score
+        total_score = sum(res['points_awarded'] for res in results)
+
+        # return results
+        return jsonify({"results": results, "total_score": total_score})
+
+    except Exception as e:
+        print(f"Error during assignment submission: {e}")
+        return jsonify({"error": "Failed to process assignment"}), 500
+
+    finally:
+        if conn:
+            conn.close()  # close the connection
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

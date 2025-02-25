@@ -1,20 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-// Trying something a bit different... 
-// Including course ID and beginning to consolidate code as per Seth's request
 function Chat({ botType, courseId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const textareaRef = useRef(null);
 
-  // Send user messge to backend for OpenAI API calls
+  // Adjust textarea height and overflow based on input
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    const textarea = textareaRef.current;
+
+    // Reset height to recalculate
+    textarea.style.height = '20px';
+    textarea.style.overflowY = 'hidden';
+
+    // Expand height based on content
+    const scrollHeight = textarea.scrollHeight;
+    if (scrollHeight <= 100) {
+      textarea.style.height = `${scrollHeight}px`; // Grow until max-height
+    } else {
+      textarea.style.height = '100px'; // Lock at max height
+      textarea.style.overflowY = 'auto'; // Enable scrolling after max height
+    }
+  };
+
+  // Send message and reset textarea
   const handleSendMessage = async (e) => {
     e.preventDefault();
-
     if (input.trim()) {
-      // Add user message
-      setMessages((prevMessages) => [...prevMessages, { sender: 'user', text: input }]);
+      setMessages((prev) => [...prev, { sender: 'user', text: input }]);
 
-      // Send message to backend
       try {
         const response = await fetch('http://localhost:5000/api/chat', {
           method: 'POST',
@@ -23,15 +38,18 @@ function Chat({ botType, courseId }) {
           body: JSON.stringify({ botType, prompt: input, courseId }),
         });
 
-        // Handle the backend response 
         const data = await response.json();
-        setMessages((prevMessages) => [...prevMessages, { sender: 'ai', text: data.response || 'No response' }]);
+        setMessages((prev) => [...prev, { sender: 'ai', text: data.response || 'No response' }]);
       } catch (error) {
-        console.error('Error during chat', error);
-        setMessages((prevMessages) => [...prevMessages, { sender: 'ai', text: 'There was an error processing your request' }]);
+        console.error('Error during chat:', error);
+        setMessages((prev) => [...prev, { sender: 'ai', text: 'Error processing request.' }]);
       }
 
+      // Reset textarea after sending
       setInput('');
+      const textarea = textareaRef.current;
+      textarea.style.height = '80px';
+      textarea.style.overflowY = 'hidden';
     }
   };
 
@@ -44,10 +62,12 @@ function Chat({ botType, courseId }) {
           </div>
         ))}
       </div>
+
       <form onSubmit={handleSendMessage} className="chat-input">
         <textarea
+          ref={textareaRef}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Ask a question..."
           rows="1"
           className="chat-textarea"
@@ -55,8 +75,8 @@ function Chat({ botType, courseId }) {
         <button type="submit">Send</button>
       </form>
     </div>
-
   );
 }
 
 export default Chat;
+
