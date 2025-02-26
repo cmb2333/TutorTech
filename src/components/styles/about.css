@@ -1,0 +1,110 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.about-body {
+    background-color: #FFD200;
+    padding: 50px 0;
+}
+
+.about-1 {
+    margin: 30px;
+    padding: 5px;
+}
+
+.about-1 h1 {
+    text-align: center;
+    color: black;
+    font-weight: bold;
+}
+
+.about-1 p {
+    text-align: center;
+    color: black;
+    padding: 3px;
+}
+
+.about-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Space between sections */
+    flex-wrap: wrap;
+}
+
+.about-item {
+    background-color: white;
+    padding: 40px;
+    width: 300px;  /* Ensures equal sizing */
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    transition: all 0.4s ease-in-out;
+}
+
+
+.about-item h3 {
+    font-size: 25px;
+    margin-bottom: 10px;
+}
+
+.about-item hr {
+    width: 46px;
+    height: 3px;
+    background-color: #FFD200;
+    margin: 10px auto; 
+    border: none;
+}
+
+.about-item p {
+    margin-top: 20px;
+    color: black;
+    transition: color 0.4s ease-in-out;
+}
+
+.about-item ul {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.about-item ul li {
+    color: black;
+    transition: color 0.4s ease-in-out;
+    margin-bottom: 10px; /* Spacing between list items */
+}
+
+/* Hover Effects */
+.about-item:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.about-item:hover i,
+.about-item:hover h3,
+.about-item:hover p {
+    color: white;
+}
+
+.about-item:hover ul li {
+    color: white; 
+}
+
+.about-item:hover hr {
+    background-color: white;
+}
+
+.about-item:hover i {
+    transform: translateY(-10px);
+}
+
+.about-item:hover i,
+.about-item:hover h3,
+.about-item:hover hr {
+    transition: all 0.4s ease-in-out;
+}
+
+.about-body + .footer {
+    margin-top: 0 !important;
+}

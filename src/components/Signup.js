@@ -42,17 +42,9 @@ const Signup = () => {
   };
 
   return (
-    <section className="d-flex justify-content-center align-items-center flex-column" style={{ height: '100vh' }}>
-      {/* Sign Up title centered above the card */}
-      <h1 style={{
-        marginBottom: '40px', 
-        textAlign: 'center', 
-        color: '#003466', 
-        fontSize: '2rem', 
-        fontWeight: 'bold'
-      }}>Sign Up</h1>
-
+    <section className="login d-flex justify-content-center align-items-center flex-column">
       <Card className="form-container">
+        <Card.Title>Sign Up</Card.Title>
         <Card.Body>
         <Form className="login-form" onSubmit={handleSignup}>
           <Form.Group controlId="userId" className="mb-3">

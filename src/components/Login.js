@@ -38,11 +38,9 @@ function Login() {
   };
 
 return (
-  <section className="d-flex justify-content-center align-items-center flex-column" style={{ height: '100vh' }}>
-    {/* Login title centered above the card */}
-    <h1>Login</h1>
-
+  <section className="login d-flex justify-content-center align-items-center flex-column">
     <Card className="form-container">
+      <Card.Title>Login</Card.Title>
       <Card.Body>
         <Form className="login-form" onSubmit={handleLogin}>
           {/* User ID field */}

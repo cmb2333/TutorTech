@@ -1,7 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useUser } from "../context/UserContext"; 
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import { Card, Row, Col } from "react-bootstrap";
 
 const Profile = () => {
+  useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
+
   const { user, setUser } = useUser(); 
   const [isEditing, setIsEditing] = useState(false); // Toggle edit mode
   const [formData, setFormData] = useState({
@@ -85,112 +92,140 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
-      <div className="profile-card">
-        <h1>Profile</h1>
-        
-        {isEditing ? (
-          <>
-            <label>
-              First Name:
-              <input
-                className="inputBox"
-                type="text"
-                name="first_name"
-                value={formData.first_name}
-                onChange={informationChange}
-              />
-            </label>
-            <label>
-              Last Name:
-              <input
-                className="inputBox"
-                type="text"
-                name="last_name"
-                value={formData.last_name}
-                onChange={informationChange}
-              />
-            </label>
-            <label>
-              Email:
-              <input
-                className="inputBox"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={informationChange}
-              />
-            </label>
-            <button className="save-button" onClick={handleSave}>
-              Save Changes
-            </button>
-            <button className="cancel-button" onClick={() => setIsEditing(false)}>
-              Cancel
-            </button>
-          </>
-        ) : (
-          <>
-            <p>Name: {user.first_name} {user.last_name}</p>
-            <p>Email: {user.email}</p>
-            <button className="edit-button" onClick={() => setIsEditing(true)}>
-              Edit Profile
-            </button>
-          </>
-        )}
-        
-        {isEditingPassword ? (
-          <div className="password-change-form">
-            <label>
-              Current Password:
-              <input
-                className="inputBox"
-                type="password"
-                name="currentPassword"
-                value={passwordData.currentPassword}
-                onChange={passwordChange}
-              />
-            </label>
-            <label>
-              New Password:
-              <input 
-                className="inputBox"
-                type="password"
-                name="newPassword"
-                value={passwordData.newPassword}
-                onChange={passwordChange}
-              />
-            </label>
-            <label>
-              Confirm New Password:
-              <input
-                className="inputBox"
-                type="password"
-                name="confirmPassword"
-                value={passwordData.confirmPassword}
-                onChange={passwordChange}
-              />
-            </label>
-            <button className="save-button" onClick={handlePasswordChange}>
-              Save Password
-            </button>
-            <button
-              className="cancel-button"
-              onClick={() => setIsEditingPassword(false)}
-            >
-              Cancel
-            </button>
-            <p className="password-message">{passwordMessage}</p>
-          </div>
-        ) : (
-          <button
-            className="password-button"
-            onClick={() => setIsEditingPassword(true)}
-          >
-            Change Password
-          </button>
-        )}
-      </div>
+      <Row className="d-flex align-items-stretch h-100 w-100" style={{ margin: 0 }}>
+        <Col md={8} className="d-flex">
+          <Card className="profile-card w-100" data-aos="fade-up" data-aos-delay="100">
+            <h1>Profile</h1>
+            {/* Only show user info when NOT editing or changing password */}
+            {!isEditing && !isEditingPassword && (
+              <>
+                <p>Name: {user.first_name} {user.last_name}</p>
+                <p>Email: {user.email}</p>
+              </>
+            )}
+      
+            {/* Edit Profile Section */}
+            {isEditing ? (
+              <div className="edit-information-form">
+                <label>
+                  First Name:
+                  <input
+                    className="inputBox"
+                    type="text"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={informationChange}
+                  />
+                </label>
+                <label>
+                  Last Name:
+                  <input
+                    className="inputBox"
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={informationChange}
+                  />
+                </label>
+                <label>
+                  Email:
+                  <input
+                    className="inputBox"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={informationChange}
+                  />
+                </label>
+                <br></br>
+                <button className="save-button" onClick={handleSave}>
+                  Save Changes
+                </button>
+                <button className="cancel-button" onClick={() => setIsEditing(false)}>
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              // Show Edit Profile button only if NOT changing password
+              !isEditingPassword && (
+                <button className="edit-button" onClick={() => setIsEditing(true)}>
+                  Edit Profile
+                </button>
+              )
+            )}
+      
+            {/* Change Password Section */}
+            {isEditingPassword ? (
+              <div className="password-change-form">
+                <label>
+                  Current Password:
+                  <input
+                    className="inputBox"
+                    type="password"
+                    name="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={passwordChange}
+                  />
+                </label>
+                <label>
+                  New Password:
+                  <input
+                    className="inputBox"
+                    type="password"
+                    name="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={passwordChange}
+                  />
+                </label>
+                <label>
+                  Confirm New Password:
+                  <input
+                    className="inputBox"
+                    type="password"
+                    name="confirmPassword"
+                    value={passwordData.confirmPassword}
+                    onChange={passwordChange}
+                  />
+                </label>
+                <button className="save-button" onClick={handlePasswordChange}>
+                  Save Password
+                </button>
+                <button className="cancel-button" onClick={() => setIsEditingPassword(false)}>
+                  Cancel
+                </button>
+                <p className="password-message">{passwordMessage}</p>
+              </div>
+            ) : (
+              // Show Change Password button only if NOT editing profile
+              !isEditing && (
+                <button
+                  className="password-button"
+                  onClick={() => setIsEditingPassword(true)}
+                >
+                  Change Password
+                </button>
+              )
+            )}
+          </Card>
+        </Col>
+
+        <Col md={4} className="d-flex justify-content-center">
+          <Card className="profile-avatar flex-grow-1" data-aos="fade-up" data-aos-delay="100">
+            <Card.Img
+            variant="top"
+            src="/assets/louie-icon.png"
+            className='profile-img'
+            />
+            <Card.Body className='text-center'>
+                <Card.Title>{user.first_name} {user.last_name}</Card.Title>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
+  
+  
 };
 
 export default Profile;

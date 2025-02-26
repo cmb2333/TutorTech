@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-// Some simple styling (update in future)
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 function Courses() {
   const [courses, setCourses] = useState([]);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const { user } = useUser();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
 
   useEffect(() => {
     fetch('http://localhost:5000/courses')
@@ -46,14 +51,19 @@ function Courses() {
 
   return (
     <Container className="courses-page">
-      <h2>Available Courses</h2>
+      <h2 data-aos="fade" data-aos-delay="100">Available Courses</h2>
       <Row>
         {courses.map((course, index) => (
           <Col md={4} key={index}>
-            <Card className="course-card">
-              <Card.Img variant="top" src="/assets/exampleCourse.jpg" alt={`Image for ${course.course_title}`} />
+            <Card className="course-card" data-aos="flip-up" data-aos-delay="200">
+            <Card.Img 
+              variant="top" 
+              src={`/assets/courses/${course.course_code}.jpg`} 
+              alt={`Image for ${course.course_title}`} 
+              onError={(e) => e.target.src = "/assets/courses/exampleCourse.jpg"}
+            />
               <Card.Body>
-                <Card.Title>{course.course_title}</Card.Title>
+                <Card.Title>{course.course_code} - {course.course_title}</Card.Title>
                 <Card.Text>{course.course_description}</Card.Text>
                 <strong>Credits:</strong> {course.credits}
                 {enrolledCourses.includes(course.course_code) ? (
