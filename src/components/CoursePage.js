@@ -5,6 +5,7 @@ import { Nav, Button } from "react-bootstrap"; // import Bootstrap components
 import Assignment from "./Assignment"; // import Assignment component
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { useUser } from "../context/UserContext";
 
 // ---------- Functional React Component ----------
 // Receives: None directly, but uses courseId from the URL
@@ -22,6 +23,7 @@ function CoursePage() {
   const [botType, setBotType] = useState('Tutor'); // store selected bot type (default: Tutor)
   const [selectedSection, setSelectedSection] = useState('lectures'); // track the active section (default: Lectures)
   const [selectedAssignment, setSelectedAssignment] = useState(null); // store the selected assignment for viewing
+  const { user } = useUser();
 
   // ---------- Event Handlers ----------
   // Handle when an assignment is clicked
@@ -179,7 +181,7 @@ function CoursePage() {
         </label>
 
         {/* Chat component with botType and courseId as props */}
-        <Chat botType={botType} courseId={courseId} />
+        <Chat botType={botType} courseId={courseId} userId={user?.user_id} />
       </div>
     </div>
   );

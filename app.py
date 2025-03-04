@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import logging
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams
+from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, Range
+import time
 
 # Load environment variables
 load_dotenv()
@@ -29,7 +30,7 @@ qdrant_client = QdrantClient("localhost", port=6333)
 
 # Create a collection if it doesn't exist
 # 1536 is the size for OpenAI embeddings
-collection_name = "tutortech_collection"
+collection_name = "chat_history"
 if not qdrant_client.collection_exists(collection_name):
     qdrant_client.create_collection(
         collection_name=collection_name,
@@ -52,6 +53,26 @@ def get_db_connection():
         logging.error(f"Failed to connect to the PostgreSQL database: {e}")
         raise
 
+def embed_text(text):
+    """Generate an embedding using OpenAI (for Qdrant)."""
+    response = client.embeddings.create(model="text-embedding-ada-002", input=[text])
+    return response.data[0].embedding
+
+# Delete messages older than 30 days
+def delete_old_messages():
+    threshold_time = time.time() - (30 * 24 * 60 * 60)  # 30 days ago
+    qdrant_client.delete(
+            collection_name=collection_name,
+            points_selector=Filter(
+                must=[
+                    FieldCondition(
+                        key="timestamp",
+                        range=Range(lt=threshold_time)
+                    )
+                ]
+            )
+        )
+        
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
 def login():
@@ -340,34 +361,83 @@ def chat():
         data = request.json
         bot_type = data.get('botType', 'Tutor')
         prompt = data.get('prompt', '')
+        user_id = data.get('userId')
+
+        # Clean old messages before storing a new one
+        delete_old_messages()
+
+        # Embed the user query
+        user_embedding = embed_text(prompt)
+
+        # Store user message in Qdrant
+        qdrant_client.upsert(
+            collection_name=collection_name,
+            points=[
+                PointStruct(
+                    # Unique ID based on timestamp
+                    id=int(time.time()),
+                    vector=user_embedding,
+                    payload={"user_id": user_id, "role": "user", "content": prompt}
+                )
+            ]
+        )
+
+        # Retrieve chat history using semantic search
+        # Get top 5 most relevant messages
+        # Ignore low-quality matches
+        # Take the more precise results
+        search_results = qdrant_client.search(
+            collection_name=collection_name,
+            query_vector=user_embedding,
+            limit=5,
+            #filter={"user_id": user_id},
+            with_payload=True,
+            with_vectors=False,
+            score_threshold=0.75,
+            #params={"hnsw_ef": 128, "rerank_top": 3}  
+        )
+
+        history = [{"role": item.payload["role"], "content": item.payload["content"]} for item in search_results]
 
         # AI bot customization
         bot_prompts = {
-            "Tutor": "Provide structured, step-by-step explanations in full sentences without using special characters like newlines, bullet points, or bold text. Keep explanations detailed but concise, ensuring readability in a continuous paragraph format. Encourage follow-up questions for further elaboration.",
-            "Mentor": "Combine concise answers with practical steps and or real-life examples where applicable. Maintain a balance between elaboration and clarity. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
-            "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions describing only the most important facts. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
+            "Tutor": "Provide comprehensive responses...",
+            "Mentor": "Provide strategic guidance...",
+            "Co-Learner": "Provide quick, digestible answers...",
         }
 
         system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
 
-        # OpenAI API call using OpenAI client
+        for message in history:
+            if message["role"] == "ai":
+                message["role"] = "assistant"
+
+        # Query OpenAI with history
+        messages = [{"role": "system", "content": system_message}] + history + [{"role": "user", "content": prompt}]
         completion = client.chat.completions.create(
-            model="gpt-4o",  # Change as needed?
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": prompt}
-            ]
+            model="gpt-4o",
+            messages=messages
         )
 
         ai_response = completion.choices[0].message.content
 
-        # Debugging output
-        print(f"AI Response: {ai_response}")
+        # Store AI response in Qdrant
+        ai_embedding = embed_text(ai_response)
+        qdrant_client.upsert(
+            collection_name=collection_name,
+            points=[
+                PointStruct(
+                    id=int(time.time()) + 1,
+                    vector=ai_embedding,
+                    payload={"user_id": user_id, "role": "assistant", "content": ai_response}
+                )
+            ]
+        )
 
         return jsonify({"response": ai_response}), 200
 
     except Exception as e:
-        print(f"Error fetching AI response: {e}")
+        print(f"Error in chat function: {e}")
         return jsonify({"error": "Failed to process the request"}), 500
 
 # ------------------------- Course Enrollment -------------------------------------- 
@@ -504,13 +574,6 @@ def submit_assignment(assignment_id):
     finally:
         if conn:
             conn.close()  # close the connection
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
