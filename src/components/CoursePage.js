@@ -22,16 +22,17 @@ function CoursePage() {
   // Extract courseId from the URL using useParams()
   const { courseId } = useParams();
           
+  // define user first
+  const { user } = useUser();
 
-  // gets user id
-  const userId = user.user_id;           
+  // gets user id or guest default
+  const userId = user?.user_id || 'guest';           
 
   // ---------- State Variables ----------
   const [course, setCourse] = useState(null); // store course details fetched from the backend
   const [botType, setBotType] = useState('Tutor'); // store selected bot type (default: Tutor)
   const [selectedSection, setSelectedSection] = useState('lectures'); // track the active section (default: Lectures)
   const [selectedAssignment, setSelectedAssignment] = useState(null); // store the selected assignment for viewing
-  const { user } = useUser();
 
   // ---------- Event Handlers ----------
   // Handle when an assignment is clicked
