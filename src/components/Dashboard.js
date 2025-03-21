@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import Grades from './Grades';
 
 function Dashboard() {
   const [courses, setCourses] = useState([]);
@@ -88,15 +89,16 @@ function Dashboard() {
                 </Container>
             </Row>
             <Row>
+                {/* Grades section */}
                 <Container className='Grades' data-aos="slide-up" data-aos-delay="100">
-                    <h1>Grades</h1>
-                    <p>This feature will be implemented soon.</p>
+                    <Grades userId={user?.user_id}/>
                 </Container>
             </Row>
 
         </div>
     );
 }
+
 
 export default Dashboard;
 

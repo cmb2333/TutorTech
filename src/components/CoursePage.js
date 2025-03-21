@@ -5,6 +5,10 @@ import { Nav, Button } from "react-bootstrap"; // import Bootstrap components
 import Assignment from "./Assignment"; // import Assignment component
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { useUser } from '../context/UserContext'; // get the logged-in user
+import Grades from './Grades'; // import user's grades
+
+
 
 // ---------- Functional React Component ----------
 // Receives: None directly, but uses courseId from the URL
@@ -16,6 +20,12 @@ function CoursePage() {
 
   // Extract courseId from the URL using useParams()
   const { courseId } = useParams();
+
+  // gets logged-in user
+  const { user } = useUser();            
+
+  // gets user id
+  const userId = user.user_id;           
 
   // ---------- State Variables ----------
   const [course, setCourse] = useState(null); // store course details fetched from the backend
@@ -133,6 +143,7 @@ function CoursePage() {
                   <div className="assignment-list">
                     {/* Map through assignments and display each as a button */}
                     {course.assignments.map((assignment) => (
+                      // TODO: add support for assignment modules (Week 1, Week 2)
                       <div key={assignment.assignment_id} className="assignment-item">
                         <Button
                           className="custom-assignment-button"
@@ -146,8 +157,9 @@ function CoursePage() {
                 ) : (
                   // Display Assignment component when an assignment is selected
                   <Assignment
-                    assignment={selectedAssignment}
+                    assignment={{...selectedAssignment, course_code: course.course_code}}
                     onBack={handleBackToAssignments}
+                    userId={userId}
                   />
                 )}
               </>
@@ -156,7 +168,7 @@ function CoursePage() {
             {/* ----- Grades Section ----- */}
             {selectedSection === 'grades' && (
               <>
-                <p>Grades feature coming soon!</p>
+                <Grades userId={user.user_id} filterCourse={course.course_code} />
               </>
             )}
           </>

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Spinner, Alert } from 'react-bootstrap';
 
-const Assignment = ({ assignment, onBack }) => {
+const Assignment = ({ assignment, onBack, userId = 'guest' }) => {
+    // TODO: add 'module' or 'week' field to group assignments
+    // TODO: use assignment.type in future to conditionally render different layouts
+
     const [questions, setQuestions] = useState([]); // store questions
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // track current question
     const [answers, setAnswers] = useState({}); // store user answers
@@ -64,9 +67,13 @@ const Assignment = ({ assignment, onBack }) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    user_id: userId || 'guest',
                     assignment_id: assignment.assignment_id,
+                    course_code: assignment.course_code,
                     answers: answers,
-                }),
+                    score: totalScore,
+                    max_score: results.reduce((acc, res) => acc + (res.max_points || 0), 0),
+                }),                
             });
 
             const result = await response.json();
@@ -211,9 +218,6 @@ const renderResults = () => (
     </div>
 );
 
-
-
-
     return (
         <div className="assignment-container">
             <Card className="mt-4">
@@ -249,7 +253,9 @@ const renderResults = () => (
                                     className="next-button"
                                     variant="primary"
                                     onClick={handleNext}
-                                    disabled={currentQuestionIndex === questions.length - 1}
+                                    disabled={currentQuestionIndex === questions.length - 1 ||
+                                        !answers[questions[currentQuestionIndex]?.question_id] // disable button if question is unanswred 
+                                    }
                                 >
                                     Next
                                 </Button>

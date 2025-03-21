@@ -44,6 +44,9 @@ CREATE TABLE IF NOT EXISTS course_assignments
 	-- foreign key constraint
 	CONSTRAINT course_code FOREIGN KEY (course_code)
 		REFERENCES course_information (course_code)
+
+		-- future field: type (VARCHAR) to support assignment categories (quiz, exam, homework)
+
 );
 
 -- Table: assignment_questions
@@ -215,3 +218,22 @@ INSERT INTO enrollments (user_id, course_code) VALUES
 ('jh1', 'EE599'),
 ('jh1', 'PHY530'),
 ('jh1', 'DOE');
+
+-- Table: grades
+CREATE TABLE IF NOT EXISTS grades (
+    grade_id SERIAL PRIMARY KEY,                
+    user_id VARCHAR(20) NOT NULL,               
+    assignment_id VARCHAR(20) NOT NULL,         
+    course_code VARCHAR(10) NOT NULL,           
+    score NUMERIC(5, 2) DEFAULT 0,             
+    max_score NUMERIC(5, 2) DEFAULT 0,         
+    submission_date TIMESTAMP DEFAULT NOW(),    
+    UNIQUE (user_id, assignment_id),            
+
+    -- foreign key to link with existing tables
+    FOREIGN KEY (user_id) REFERENCES student_information(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_code) REFERENCES course_information(course_code) ON DELETE CASCADE
+);
+
+
+

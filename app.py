@@ -453,6 +453,8 @@ def get_assignment_questions(assignment_id):
 # Grade user answers and calculate scores
 @app.route('/api/assignments/<assignment_id>/submit', methods=['POST'])
 def submit_assignment(assignment_id):
+    user_id = request.json.get('user_id')
+    course_code = request.json.get('course_code')
     user_answers = request.json.get('answers', {})  # user answers submitted
     results = []
 
@@ -494,6 +496,30 @@ def submit_assignment(assignment_id):
         # calculate total score
         total_score = sum(res['points_awarded'] for res in results)
 
+        # calculate max points
+        total_possible = sum(res['max_points'] for res in results)
+
+        # Insert or update the grade in the grades table
+        try:
+            with conn.cursor() as cur:
+                print(f"Inserting score for user_id: {user_id}, assignment_id: {assignment_id}, total_score: {total_score}")
+                print(f"Expected unique_id: {assignment_id}_{user_id}")
+
+                cur.execute("""
+                            INSERT INTO grades (user_id, assignment_id, course_code, score, max_score)
+                            VALUES (%s, %s, %s, %s, %s)
+                            ON CONFLICT (user_id, assignment_id) 
+                            DO UPDATE SET score = EXCLUDED.score, max_score = EXCLUDED.max_score;
+                            """, (user_id, assignment_id, course_code, total_score, total_possible))
+                
+                conn.commit()
+                print("Score saved successfully!")
+
+        except Exception as e:
+            print(f"Error saving grade: {e}")
+            return jsonify({"error": "Failed to save grade"}), 500
+
+
         # return results
         return jsonify({"results": results, "total_score": total_score})
 
@@ -505,11 +531,55 @@ def submit_assignment(assignment_id):
         if conn:
             conn.close()  # close the connection
 
+# Grade submission
+@app.route('/api/grades/<user_id>', methods=['GET'])
+def get_grades(user_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
+        print(f"Fetching grades for user_id: {user_id}")
 
+        # currently all assignments are treated equally in grading and reporting
+        # TO DO: different categories ('quiz', 'project', 'exam') 
+        # TO DO: weighted grading per category
+        # assignment type should be stored in the course_assignments table
+        # TO DO: include 'type' in SELECT and use in frontend filtering
 
+        # query for course information
+        query = """
+        SELECT ca.assignment_title, g.course_code, g.score, g.max_score
+        FROM grades g
+        JOIN course_assignments ca ON g.assignment_id = ca.assignment_id
+        WHERE g.user_id = %s;
+        """
+        cursor.execute(query, (user_id,))
+        results = cursor.fetchall()
+        print(f"Query results: {results}")
 
+        # grades access by column name
+        grades = [
+    {
+        "assignment_title": r["assignment_title"],
+        "course_code": r["course_code"],
+        "score": r["score"],
+        "max_score": r["max_score"]
+    }
+    for r in results
+    
+    ]
+        cursor.close()
+        conn.close()
 
+        return jsonify(grades)
+
+    # error handling for console
+    except psycopg2.Error as e:
+        print(f"Database error: {e.pgcode} - {e.pgerror}")
+        return jsonify({"error": "Database error occurred"}), 500
+    except Exception as e:
+        print(f"General error: {str(e)}")
+        return jsonify({"error": "Failed to fetch grades"}), 500
 
 
 if __name__ == "__main__":
