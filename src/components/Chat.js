@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-function Chat({ botType, courseId }) {
+function Chat({ botType, courseId, userId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const textareaRef = useRef(null);
@@ -35,7 +35,7 @@ function Chat({ botType, courseId }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ botType, prompt: input, courseId }),
+          body: JSON.stringify({ botType, prompt: input, courseId, userId}),
         });
 
         const data = await response.json();
