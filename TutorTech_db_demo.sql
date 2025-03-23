@@ -192,5 +192,8 @@ CREATE TABLE IF NOT EXISTS grades (
     FOREIGN KEY (course_code) REFERENCES course_information(course_code) ON DELETE CASCADE
 );
 
+ALTER TABLE student_information ADD COLUMN learning_preferences TEXT;
+
+
 
 
