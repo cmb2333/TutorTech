@@ -12,86 +12,103 @@ function Home() {
 
   // initialize AOS
   useEffect(() => {
-    AOS.init({ duration: 1000 }); 
+    AOS.init({ 
+      duration: 1000,
+      easing: 'ease-in-out', }); 
   }, []);
 
   return (
     <div>
       <section className="banner">
         <Container className='banner-text'>
-          <h1 className="display-4" data-aos="zoom-in" data-aos-delay="200">
-            Tell me and I forget, teach me and I may remember, involve me and I learn            <br></br>
+          <h1 className="display-4" data-aos="fade-up" data-aos-delay="200">
+            Tell me and I forget, teach me and I may remember, involve me and I learn
+            <br />
           </h1>
         </Container>
       </section>
     
 
       <section className='current-landscape-section'>
-        <Container className='py-5 text-center '>
-          <h1>The Current Landscape of Student Learning</h1>
+        <Container className='py-5 text-center'>
+          <h1 data-aos="zoom-in" data-aos-delay="400">The Current Landscape of Student Learning</h1>
           <CardGroup className='mt-2 gap-5'>
-            <Card className='landscape-card shadow'>
+            <Card className='landscape-card shadow' data-aos="flip-left">
               <Card.Body>
-                <Card.Title>Limitations of LMS systems</Card.Title>
+                <Card.Title>Learning Management System Limitations</Card.Title>
                 <ListGroup variant="flush">
                   <ListGroup.Item className='list-format'>Lack of real-time support</ListGroup.Item>
-                  <ListGroup.Item className='list-format'>Limited Personalization</ListGroup.Item>
-                  <ListGroup.Item className='list-format'>Minimal Engagement</ListGroup.Item>
-                  <ListGroup.Item className='list-format'>Inconsistent Progress Checking</ListGroup.Item>
-              </ListGroup>
+                  <ListGroup.Item className='list-format'>Limited personalization</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Minimal engagement</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Inconsistent progress checking</ListGroup.Item>
+                </ListGroup>
               </Card.Body>
             </Card>
-            <Card className='landscape-card shadow'>
+            <Card className='landscape-card shadow' data-aos="flip-left" data-aos-delay="200">
               <Card.Body>
-                <Card.Title>Classroom Environment</Card.Title>
+                <Card.Title>Current Classroom Environment</Card.Title>
                 <ListGroup variant="flush">
-                  <ListGroup.Item className='list-format'>Avg Proffesor to Student Ratio 1:18</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Average professor to student ratio = 1:18</ListGroup.Item>
                   <ListGroup.Item className='list-format'>Only 2-3 hours of class time per week</ListGroup.Item>
-                  <ListGroup.Item className='list-format'>Extensive Lectures with Minimal Time for Clarification</ListGroup.Item>
-              </ListGroup>
+                  <ListGroup.Item className='list-format'>Extensive lectures with minimal time for clarification</ListGroup.Item>
+                </ListGroup>
               </Card.Body>
             </Card>
-            <Card className='landscape-card shadow'>
+            <Card className='landscape-card shadow' data-aos="flip-left" data-aos-delay="400">
               <Card.Body>
-                <Card.Title>Academic Integrity</Card.Title>
+                <Card.Title>Academic Integrity Issues</Card.Title>
                 <ListGroup variant="flush">
-                  <ListGroup.Item className='list-format'>Misuse of Generative AI</ListGroup.Item>
-                  <ListGroup.Item className='list-format'>Prohibited Student Collaboration</ListGroup.Item>
-                  <ListGroup.Item className='list-format'>Online Platforms with Collection of Completed Assignments</ListGroup.Item>
-              </ListGroup>
+                  <ListGroup.Item className='list-format'>Misuse of generative AI</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Prohibited student collaboration</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Online platforms with collection of completed assignments</ListGroup.Item>
+                </ListGroup>
               </Card.Body>
             </Card>
-            {/*<Card className='landscape-card shadow'>
-              <Card.Body>
-              <Card.Title>Learning frustration and degradement of motivation</Card.Title>
-                <p>
-                  Students start to develop a result based mindset, in which they prioritize
-                  getting assignments completed or passing the course, instead of actually 
-                  understanding the material and learning foundational concepts. 
-                  <br></br><br></br>
-                  In today's learning environment, this mindset causes the student to resort to Generative AI and 
-                  LLMs(Large Language Models). In our eyes, the real problem lies within the employment and
-                  utilization of this evolutionary technology.
-                  <br></br><br></br>
-                  The MRTL has teamed up with NAU students from the 
-                  Computer Science and Software Engineering Capstone Experience to create the blueprint for
-                  a potential solution. 
-                </p>
-              </Card.Body>
-            </Card>*/}
           </CardGroup>
         </Container>
       </section>
 
-      <Container className='d-flex carousel-section'>
+      <section className='why-MRTL-section'>
+        <Container className='py-5 text-center'>
+          <h1 data-aos="zoom-in" data-aos-delay="400">Why Choose MRTL?</h1>
+          <CardGroup className='mt-2 gap-5'>
+            <Card className='landscape-card shadow' data-aos="flip-left">
+              <Card.Body>
+                <Card.Title>Personified Chatbot Options</Card.Title>
+                <ListGroup variant="flush">
+                  <ListGroup.Item className='list-format'><strong>Tutor</strong> - gives step-by-step explanations with a structured teaching style.</ListGroup.Item>
+                  <ListGroup.Item className='list-format'><strong>Mentor</strong> - gives real-world applications to give better clarity on topics.</ListGroup.Item>
+                  <ListGroup.Item className='list-format'><strong>Co-Learner</strong> - acts as a study partner to enhance your current learning environment.</ListGroup.Item>
+                  <ListGroup.Item className='list-format'><strong>Custom Learning Style</strong> - gathers student learning preferances and tailors responses accordingly.</ListGroup.Item>
+                </ListGroup>
+              </Card.Body>
+            </Card>
+            <Card className='landscape-card shadow' data-aos="flip-left" data-aos-delay="200">
+              <Card.Body>
+                <Card.Title>The Learning Environment</Card.Title>
+                <ListGroup variant="flush">
+                  <ListGroup.Item className='list-format'>Enroll into desired course(s).</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Engage with course content such as lectures & assignments.</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Receive additional help through the chatbot tailored to student's choices.</ListGroup.Item>
+                  <ListGroup.Item className='list-format'>Receive personalized feedback:
+                    <ul>
+                      <li>Suggestions for concepts to re-study.</li>
+                      <li>Extra resources for better comprehension.</li>
+                    </ul>
+                  </ListGroup.Item>
+                </ListGroup>
+              </Card.Body>
+            </Card>
+          </CardGroup>
+        </Container>
+      </section>
+
+      <Container className='d-flex carousel-section' data-aos="fade-up" data-aos-delay="600">
         <HomeCarousel />
       </Container>
-
-
 
     </div>
   );
 }
 
 export default Home;
-
