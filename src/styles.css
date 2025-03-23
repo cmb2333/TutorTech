@@ -172,34 +172,34 @@ body {
   margin: 10rem auto 0; 
   padding: 0.5rem;
   text-align: center;
-  font-size: 2.5rem; /* Default size for desktops */
+  font-size: 2.5rem; 
   line-height: 1.5;
 }
 
 @media (max-width: 768px) {
   .banner-text h1 {
     margin: 8rem auto 0;
-    font-size: 2rem; /* Adjusted size for tablets */
+    font-size: 2rem;
   }
 }
 
 @media (max-width: 480px) {
   .banner-text h1 {
     margin: 6rem auto 0;
-    font-size: 1.5rem; /* Adjusted size for mobile devices */
+    font-size: 1.5rem;
     padding: 1rem;
   }
 }
 
 
-/* --- Current Landscape Section --- */
+/* --- Current Landscape & Why MRTL Section --- */
 .current-landscape-section {
   font-family: 'Roboto Condensed', sans-serif;
   margin-top: 2rem;
   margin-bottom: 5rem;
 }
 
-.current-landscape-section h1 {
+.current-landscape-section h1, .why-MRTL-section h1 {
   font-weight: 600;
   padding: 0.5rem;
   border-radius: 10px;
@@ -209,6 +209,10 @@ body {
 
 .landscape-card {
   padding: 1rem;
+  border-radius: 10px;
+  background-color: #fff; 
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 350px;
 }
 
 .landscape-card:hover {
@@ -218,10 +222,10 @@ body {
 
 .landscape-card .card-title {
   font-size: 1.7rem;
-  font-weight: 300;
+  font-weight: 600;
   color: #fff;
   text-shadow: 2px 1px 2px rgba(0, 0, 0, 0.7);
-  padding: .2rem;
+  padding: 0.5rem;
   border: 2px solid #fff;
   background-color: var(--primary-color);
   border-radius: 10px;
@@ -247,6 +251,7 @@ body {
   border: 2px solid #fff;
   background-color: #FFD200;
 }
+
 
 .home-carousel {
   position: relative;
@@ -354,6 +359,15 @@ body {
   box-sizing: border-box;
 }
 
+.courses-page h2 {
+  margin-top: 50px;
+  margin-bottom: 40px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: black;
+  text-align: center;
+}
+
 .course-info {
   flex: 2;
   overflow: auto;
@@ -375,7 +389,7 @@ body {
   flex-grow: 1; 
   display: flex;
   flex-direction: column;
-  justify-content: space-between; 
+  justify-content: space-between;
 }
 
 .course-card .card-text {
