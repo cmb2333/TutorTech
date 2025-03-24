@@ -357,6 +357,7 @@ body {
   gap: 20px;
   padding: 20px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .courses-page h2 {
@@ -560,6 +561,7 @@ body {
 
 /* result item container */
 .result-item {
+  position: relative;
   padding: 10px 15px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -593,6 +595,12 @@ body {
 
 .result-item .answer-options li {
   padding: 5px 0;
+}
+
+.explanation-button-container {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
 }
 
 
@@ -632,21 +640,22 @@ body {
 }
 
 /* ------------------------ AI Chat ---------------------------- */
-/* Position bot section on the right */
 .bot-section {
-  width: 25%;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   position: sticky;
   top: 0;
-  padding: 8px;
+  width: 400px;
+  overflow-y: auto;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  box-sizing: border-box;
+  transition: max-height 0.2s ease-in-out;
 }
 
-/* Bot selector label */
+/* Bot type label + selector */
 .bot-label {
   font-weight: bold;
   margin-bottom: 10px;
@@ -654,7 +663,6 @@ body {
   width: 100%;
 }
 
-/* Dropdown styling */
 .bot-type-selector {
   width: 100%;
   padding: 8px;
@@ -665,103 +673,164 @@ body {
   cursor: pointer;
 }
 
-/* Chat Container */
+/* Main chat container */
 .ai-chat {
-  width: 100%;
-  max-width: 100%;
-  height: 100%; 
-  border-radius: 10px;
-  background-color: #f9f9f9;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-/* Messages Container */
+/* Scrollable message area */
 .chat-messages {
-  width: 100%; /* Ensure it spans the entire width of the parent */
   flex-grow: 1;
   overflow-y: auto;
-  padding: 15px;
+  padding: 16px;
   background-color: #fff;
-  border-radius: 10px;
   border: 1px solid #ddd;
-  height: 80%;
+  border-radius: 8px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  box-sizing: border-box; /* Ensure padding doesn't affect width */
+  gap: 12px;
 }
 
-/* User Messages - Align to Right */
+/* Message alignment */
 .chat-message.user {
   display: flex;
-  justify-content: flex-end; 
+  justify-content: flex-end;
 }
 
-/* AI Messages - Align to Left */
 .chat-message.ai {
   display: flex;
-  justify-content: flex-start; 
+  justify-content: flex-start;
 }
 
-/* AI Message Bubble */
-.chat-message.ai .message-bubble {
-  max-width: 100%;
-  padding: 12px 16px;
-  background-color: #f1f1f1;
-  border-radius: 12px;
-  color: black;
-}
-
-/* User Message Bubble */
+/* User message bubble */
 .chat-message.user .message-bubble {
   max-width: 75%;
   padding: 12px 16px;
   background-color: var(--primary-color);
   color: white;
   border-radius: 12px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
+/* AI message bubble */
+.chat-message.ai .message-bubble {
+  max-width: 100%;
+  padding: 12px 16px;
+  background-color: #f1f1f1;
+  color: black;
+  border-radius: 12px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
 
-/* Chat Input Area */
+/* Chat input container */
 .chat-input {
+  border-top: 1px solid #ddd;
+  padding: 12px 0 0;
   display: flex;
   flex-direction: column;
-  margin-top: 10px;
-  border-top: 1px solid #ddd;
   align-items: center;
-  padding: 10px;
+  background-color: #f9f9f9;
 }
 
-/* Auto-growing Text Input */
+/* Resizable textarea */
 .chat-textarea {
   width: 100%;
-  min-height: 20px; 
-  max-height: 100px; /* Max height before scrolling */
-  overflow-y: hidden; /* No scrollbar initially */
+  min-height: 20px;
+  max-height: 100px;
+  overflow-y: hidden;
   padding: 10px;
+  font-size: 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  font-size: 16px;
-  resize: none; /* Prevent user from manual resizing */
+  resize: none;
   box-sizing: border-box;
-  line-height: 1.5; /* Ensure consistent line height */
+  line-height: 1.5;
 }
 
-/* Send Button */
-.chat-input button {
-  padding: 4px 20px;
-  margin-top: 5px;
+.chat-input-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.chat-button-group button {
+  padding: 6px 16px;
   border: none;
   border-radius: 8px;
-  background-color: var(--primary-color);
-  color: white;
-  font-size: 16px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-.chat-input button:hover {
-  background-color: var(--secondary-color);
+.chat-button-group button[type="submit"] {
+  background-color: var(--primary-color);
+  color: white;
 }
+
+.chat-button-group .clear-button {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.chat-button-group .clear-button:hover {
+  background-color: #d3d3d3;
+}
+
+
+/* Typing indicator dots */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f1f1f1;
+  border-radius: 12px;
+  min-width: 60px;
+  height: 30px;
+}
+
+.typing-indicator .dot {
+  width: 8px;
+  height: 8px;
+  background-color: #888;
+  border-radius: 50%;
+  animation: blink 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-indicator .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
 
 /* ---------------------------- Dashboard ---------------------------- */
 

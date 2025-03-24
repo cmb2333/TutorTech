@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Spinner, Alert } from 'react-bootstrap';
 
-const Assignment = ({ assignment, onBack, userId = 'guest' }) => {
+const Assignment = ({ assignment, onBack, userId = 'guest', onAskChat }) => {
     // TODO: add 'module' or 'week' field to group assignments
     // TODO: use assignment.type in future to conditionally render different layouts
 
@@ -11,6 +11,7 @@ const Assignment = ({ assignment, onBack, userId = 'guest' }) => {
     const [results, setResults] = useState([]); // store grading results
     const [totalScore, setTotalScore] = useState(0); // store total score
     const [loading, setLoading] = useState(false); // track loading state
+    const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(""); // store error messages
 
     // fetch assignment questions from backend
@@ -60,8 +61,10 @@ const Assignment = ({ assignment, onBack, userId = 'guest' }) => {
     // check if all questions are answered
     const allAnswered = questions.every((q) => answers[q.question_id]);
 
-    // submit assignment and get results
+    // ---------- Submit Assignment and Trigger Grading ----------
     const handleSubmitAssignment = async () => {
+        setSubmitting(true); // show spinner
+
         try {
             const response = await fetch(`http://localhost:5000/api/assignments/${assignment.assignment_id}/submit`, {
                 method: 'POST',
@@ -76,34 +79,96 @@ const Assignment = ({ assignment, onBack, userId = 'guest' }) => {
                 }),                
             });
 
-            const result = await response.json();
+            const result = await response.json(); // parse grading result from backend
             if (response.ok) {
-                setTotalScore(result.total_score);
-                setResults(result.results);
+                setTotalScore(result.total_score); // update total score after grading
+                setResults(result.results); // update individual question feedback
             } else {
                 alert(result.error || "failed to submit assignment.");
             }
         } catch (error) {
             console.error("error submitting assignment:", error);
             alert("an error occurred while submitting.");
+        } finally {
+            setSubmitting(false); // hide spinner
         }
     };
 
-    // render question index buttons
+    // ---------- Build AI Explanation Prompt for Chat ----------
+    const handleAskChat = (question, res) => {
+        const isText = question?.question_type === 'text';
+        const isMultipleChoice = question?.question_type === 'multiple_choice';
+      
+        // Format choices for multiple choice
+        const formattedChoices = isMultipleChoice && question?.options?.choices
+          ? `Choices were: ${question.options.choices.join(', ')}`
+          : '';
+      
+        // Format correct answer (string or array)
+        const correctAnswer = Array.isArray(res.correct_answer)
+          ? res.correct_answer.join(', ')
+          : res.correct_answer;
+      
+        // Construct full AI prompt including question, user answer, correct answer, and score
+        const prompt = `
+      The student needs help understanding a question from their assignment.
+      
+      Question:
+      ${question.question_text}
+      
+      Their Answer:
+      ${res.user_answer || 'No answer provided'}
+      
+      ${isText
+          ? `The correct answer is represented by the following key concepts:\n${correctAnswer}\n\nThese keywords are not a full answer — please evaluate the student's response in the context of the question, and explain why it was fully correct, partially correct, or incorrect.`
+          : `${formattedChoices}\nCorrect Answer:\n${correctAnswer}`
+      }
+      
+      Score Received:
+      ${res.points_awarded}/${res.max_points}
+      
+      Please explain what they got right or wrong, and give a clear explanation to help them learn. Your response should speak directly to the student.
+      `.trim();
+      
+        // Trigger the Chat component via callback to CoursePage
+        if (typeof onAskChat === 'function') {
+          onAskChat(prompt); // sets externalPrompt in <CoursePage />, passed down to <Chat />
+        }
+      };
+      
+      
+      
+
+    // -------------------- render: question index buttons --------------------
     const renderQuestionIndex = () => (
         <div className="assignment-container question-index">
-            {questions.map((_, index) => (
-                <Button
-                    key={index}
-                    size="sm"
-                    className={index === currentQuestionIndex ? "current-question-index" : "secondary-question-index"}
-                    onClick={() => setCurrentQuestionIndex(index)}
-                >
-                    {index + 1}
-                </Button>
-            ))}
+            {questions.map((_, index) => {
+                const isAccessible = isQuestionAccessible(index);
+
+                return (
+                    <Button
+                        key={index}
+                        size="sm"
+                        variant={index === currentQuestionIndex ? "primary" : "outline-secondary"}
+                        className={index === currentQuestionIndex ? "current-question-index" : "secondary-question-index"}
+                        onClick={() => isAccessible && setCurrentQuestionIndex(index)}
+                        disabled={!isAccessible} // disable if user is not allowed to click it
+                    >
+                        {index + 1}
+                    </Button>
+                );
+            })}
         </div>
     );
+
+
+// -------------------- helper: determine if question is unlocked --------------------
+const isQuestionAccessible = (index) => {
+    // a question is accessible if it's before or at the current question index
+    // or it has already been answered
+    return index <= currentQuestionIndex || answers[questions[index]?.question_id];
+};
+
 
 // render current question with consistent sizing
 const renderQuestion = () => {
@@ -173,8 +238,8 @@ const renderResults = () => (
         <h4>Assignment Results</h4>
 
         {results.map((res, index) => {
-            // find the corresponding question by question_id
             const question = questions.find(q => String(q.question_id) === String(res.question_id));
+            const isTextQuestion = question?.question_type === 'text';
 
             return (
                 <div key={res.question_id} className="result-item">
@@ -184,13 +249,15 @@ const renderResults = () => (
                         <span className="points-earned">{res.points_awarded}/{res.max_points} points</span>
                     </div>
 
-                    {/* Display Answer Options for Multiple Choice */}
+                    {/* Multiple Choice Answer Display */}
                     {question?.question_type === 'multiple_choice' && question?.options?.choices && (
                         <ul className="answer-options">
                             {question.options.choices.map((choice, i) => (
-                                <li key={i} style={{ color: choice === res.correct_answer ? 'green' : 'black' }}>
+                                <li
+                                    key={i}
+                                    style={{ color: choice === res.correct_answer ? 'green' : 'black' }}
+                                >
                                     {choice}
-                                    {choice === res.correct_answer}
                                 </li>
                             ))}
                         </ul>
@@ -199,16 +266,44 @@ const renderResults = () => (
                     <hr />
 
                     {/* Display User's Answer with Conditional Styling */}
-                    <p style={{ color: res.correct ? 'green' : 'red' }}>
+                    <p style={{
+                        color:
+                            isTextQuestion && res.points_awarded > 0 && res.points_awarded < res.max_points ? 'orange' :
+                            res.correct ? 'green' :
+                            'red'
+                    }}>
+
                         <strong>Your Answer:</strong> {res.user_answer || 'No answer provided'}
                     </p>
 
-                    {/* Highlight Correct Answer if Incorrect */}
-                    {!res.correct && (
-                        <p style={{ color: 'green' }}>
-                            <strong>Correct Answer:</strong> {res.correct_answer}
+                    {/* Feedback for Text-Based (AI-Graded) Questions */}
+                    {isTextQuestion && res.points_awarded > 0 && res.points_awarded < res.max_points && (
+                        <p style={{ color: 'orange' }}>
+                            <em>Partially correct — your answer matched some key concepts.</em>
                         </p>
                     )}
+
+                    {/* Show Correct Answer if incorrect */}
+                    {!res.correct && (
+                        <p style={{ color: 'green' }}>
+                            <strong>Correct Answer:</strong>{' '}
+                            {Array.isArray(res.correct_answer)
+                                ? res.correct_answer.join(', ')
+                                : res.correct_answer}
+                        </p>
+                    )}
+
+                    {/* Ask Chat for Explanation */}
+                    <div className='explanation-button-container'>
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="explanation-button"
+                            onClick={() => handleAskChat(question, res)}
+                        >
+                            Explanation
+                        </Button>
+                    </div>
                 </div>
             );
         })}
@@ -227,7 +322,7 @@ const renderResults = () => (
                 </Card.Header>
 
                 <Card.Body>
-                    {loading ? (
+                    {loading && questions.length === 0 ? (
                         <Spinner animation="border" />
                     ) : error ? (
                         <Alert variant="danger">{error}</Alert>
@@ -267,8 +362,23 @@ const renderResults = () => (
                                     className="submit-assignment-button"
                                     variant="success"
                                     onClick={handleSubmitAssignment}
+                                    disabled={submitting}
                                 >
-                                    Submit
+                                    {submitting ? (
+                                    <>
+                                        <Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                        className="me-2"
+                                        />
+                                        Grading...
+                                    </>
+                                    ) : (
+                                    "Submit"
+                                    )}
                                 </Button>
                             )}
                         </>

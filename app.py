@@ -575,6 +575,65 @@ def get_assignment_questions(assignment_id):
         print(f"Error fetching questions: {e}")
         return jsonify({"error": "Failed to fetch questions"}), 500
 
+# Function for evaluating free response questions
+def evaluate_text_response_with_openai(user_answer, keyword_list, max_points, question_text):
+    try:
+        max_points = max_points or 1
+        keyword_str = ', '.join(keyword_list)
+
+        # --- Prompt to Chatgpt ---
+        prompt = f"""
+You are an education grading assistant. Your job is to grade short free-response student answers based on how well they address the key concepts of a specific question.
+
+QUESTION:
+\"\"\"
+{question_text}
+\"\"\"
+
+KEYWORDS:
+{keyword_str}
+
+STUDENT ANSWER:
+\"\"\"
+{user_answer}
+\"\"\"
+
+INSTRUCTIONS:
+1. Explain which keywords or ideas were addressed and which were missing.
+2. Justify how well the student answered the question based on those key ideas.
+3. On the FINAL line, provide a numeric score from 0 to {max_points}. Only the number. No extra words.
+"""
+        # --- Log prompt and user input ---
+        print("---------------------------------------------------")
+        print("📝 AI Grading Prompt:")
+        print(prompt.strip())
+        print("---------------------------------------------------")
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+        )
+
+        
+        full_response = response.choices[0].message.content.strip()
+        full_response = response.choices[0].message.content.strip()
+        print("🧠 AI Reasoning + Score:")
+        print(full_response)
+        print("---------------------------------------------------")
+
+        # Extract last line (score)
+        lines = full_response.splitlines()
+        raw_score = lines[-1].strip()
+        score = float(raw_score)
+
+        return max(0, min(score, max_points))  # safety bound
+
+    except Exception as e:
+        print(f"AI grading error: {e}")
+        return 0
+
+
 # Grade user answers and calculate scores
 @app.route('/api/assignments/<assignment_id>/submit', methods=['POST'])
 def submit_assignment(assignment_id):
@@ -604,8 +663,21 @@ def submit_assignment(assignment_id):
             correct_answer = question['correct_answer']
             max_points = question['max_points']
 
-            # determine points awarded
-            points_awarded = max_points if user_answer == correct_answer else 0
+            # -------- handle AI evaluation for free-response questions --------
+            if question['question_type'] == 'text':
+                # Expecting keyword array
+                keyword_list = correct_answer if isinstance(correct_answer, list) else []
+                points_awarded = evaluate_text_response_with_openai(
+                    user_answer or "", 
+                    keyword_list, 
+                    max_points,
+                    question['question_text']
+                )
+                is_correct = points_awarded > 0
+            else:
+                # normal comparison for multiple_choice, true_false
+                points_awarded = max_points if user_answer == correct_answer else 0
+                is_correct = user_answer == correct_answer
 
             # append results
             results.append({
@@ -615,37 +687,29 @@ def submit_assignment(assignment_id):
                 "correct_answer": correct_answer,
                 "points_awarded": points_awarded,
                 "max_points": max_points,
-                "correct": user_answer == correct_answer
+                "correct": is_correct
             })
 
         # calculate total score
         total_score = sum(res['points_awarded'] for res in results)
-
-        # calculate max points
         total_possible = sum(res['max_points'] for res in results)
 
-        # Insert or update the grade in the grades table
+        # insert/update grade in the grades table
         try:
             with conn.cursor() as cur:
-                print(f"Inserting score for user_id: {user_id}, assignment_id: {assignment_id}, total_score: {total_score}")
-                print(f"Expected unique_id: {assignment_id}_{user_id}")
-
                 cur.execute("""
-                            INSERT INTO grades (user_id, assignment_id, course_code, score, max_score)
-                            VALUES (%s, %s, %s, %s, %s)
-                            ON CONFLICT (user_id, assignment_id) 
-                            DO UPDATE SET score = EXCLUDED.score, max_score = EXCLUDED.max_score;
-                            """, (user_id, assignment_id, course_code, total_score, total_possible))
-                
+                    INSERT INTO grades (user_id, assignment_id, course_code, score, max_score)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (user_id, assignment_id) 
+                    DO UPDATE SET score = EXCLUDED.score, max_score = EXCLUDED.max_score;
+                """, (user_id, assignment_id, course_code, total_score, total_possible))
                 conn.commit()
-                print("Score saved successfully!")
 
         except Exception as e:
             print(f"Error saving grade: {e}")
             return jsonify({"error": "Failed to save grade"}), 500
 
-
-        # return results
+        # return grading results
         return jsonify({"results": results, "total_score": total_score})
 
     except Exception as e:
@@ -654,7 +718,7 @@ def submit_assignment(assignment_id):
 
     finally:
         if conn:
-            conn.close()  # close the connection
+            conn.close()
 
 # Grade submission
 @app.route('/api/grades/<user_id>', methods=['GET'])

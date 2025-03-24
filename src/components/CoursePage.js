@@ -33,6 +33,8 @@ function CoursePage() {
   const [botType, setBotType] = useState('Tutor'); // store selected bot type (default: Tutor)
   const [selectedSection, setSelectedSection] = useState('lectures'); // track the active section (default: Lectures)
   const [selectedAssignment, setSelectedAssignment] = useState(null); // store the selected assignment for viewing
+  const [externalPrompt, setExternalPrompt] = useState(''); // stores prompts sent from Assignment
+
 
   // ---------- Event Handlers ----------
   // Handle when an assignment is clicked
@@ -43,6 +45,11 @@ function CoursePage() {
   // Handle when user goes back to assignment list
   const handleBackToAssignments = () => {
     setSelectedAssignment(null); // clear selected assignment
+  };
+
+  // Handle when the user asks for an explanation on an assignment question 
+  const handleAskChatPrompt = (promptText) => {
+    setExternalPrompt(promptText);
   };
 
   // ---------- Fetch Course Information ----------
@@ -65,6 +72,44 @@ function CoursePage() {
 
     fetchCourse(); // execute the fetch function
   }, [courseId]); // dependency array ensures fetch runs when courseId changes
+
+  // ---------- Resize Bot Chat Sidebar Responsively ----------
+  useEffect(() => {
+    // Update the sidebar height to dynamically fit between navbar and footer
+    const updateSidebarHeight = () => {
+      const sidebar = document.getElementById('botSidebar'); // get chat sidebar by ID
+      if (!sidebar) return; // exit if sidebar is not found
+
+      const navbarHeight = 80; // estimated height of fixed navbar
+      const footerHeight = 80; // estimated height of footer if present
+      const scrollY = window.scrollY; // current scroll position from top
+      const windowHeight = window.innerHeight; // visible height of the browser window
+      const documentHeight = document.documentElement.scrollHeight; // full height of the document
+
+      // calculate how close user is to the bottom of the page
+      const distanceFromBottom = documentHeight - (scrollY + windowHeight);
+      const bottomOffset = distanceFromBottom < footerHeight ? footerHeight - distanceFromBottom : 0; // reserve footer space if near bottom
+
+      const topOffset = scrollY < navbarHeight ? navbarHeight - scrollY : 0; // reserve navbar space if near top
+
+      // calculate max height for sidebar to avoid overlapping navbar/footer
+      const calculatedHeight = windowHeight - topOffset - bottomOffset;
+      sidebar.style.maxHeight = `${calculatedHeight}px`; // apply the dynamic max height
+    };
+
+    updateSidebarHeight(); // run once on initial load
+
+    // add event listeners to update sidebar height on scroll and resize
+    window.addEventListener('scroll', updateSidebarHeight);
+    window.addEventListener('resize', updateSidebarHeight);
+
+    // cleanup listeners when component unmounts
+    return () => {
+      window.removeEventListener('scroll', updateSidebarHeight);
+      window.removeEventListener('resize', updateSidebarHeight);
+    };
+  }, []);
+
 
   // ---------- Render Component ----------
   return (
@@ -161,6 +206,7 @@ function CoursePage() {
                     assignment={{...selectedAssignment, course_code: course.course_code}}
                     onBack={handleBackToAssignments}
                     userId={userId}
+                    onAskChat={handleAskChatPrompt} 
                   />
                 )}
               </>
@@ -180,7 +226,7 @@ function CoursePage() {
       </div>
 
       {/* ---------- Bot Section ---------- */}
-      <div className="bot-section" data-aos="slide-left" data-aos-delay="200">
+      <div className="bot-section" id="botSidebar" data-aos="slide-left" data-aos-delay="200">
         <label className="bot-label">
           <span>Select AI Bot Type:</span>
           {/* Dropdown to select the bot type */}
@@ -193,7 +239,12 @@ function CoursePage() {
         </label>
 
         {/* Chat component with botType and courseId as props */}
-        <Chat botType={botType} courseId={courseId} userId={user?.user_id} />
+        <Chat 
+          botType={botType} 
+          courseId={courseId} 
+          userId={user?.user_id} 
+          externalPrompt={externalPrompt}
+        />
       </div>
     </div>
   );
