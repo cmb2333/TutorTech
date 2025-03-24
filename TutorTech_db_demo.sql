@@ -258,6 +258,9 @@ INSERT INTO enrollments (user_id, course_code) VALUES
 -- The following section contains query statements that you can use to alter your local version of your datase --
 -- This section should be replaced when new changes to our schema are pushed to the github -- 
 
+-- ALTER student_information table to add learning preferences column
+ALTER TABLE student_information ADD COLUMN learning_preferences TEXT;
+
 -- ALTER assignment_questions TABLE to change correct_answer to JSONB (allows for list of keywords for free response questions)
 ALTER TABLE assignment_questions
 ALTER COLUMN correct_answer TYPE JSONB

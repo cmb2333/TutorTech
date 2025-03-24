@@ -51,7 +51,7 @@ function Courses() {
 
   return (
     <Container className="courses-page">
-      <h2 data-aos="fade" data-aos-delay="100">Available Courses</h2>
+      <h2 data-aos="fade-up" data-aos-delay="100">AVAILABLE COURSES</h2>
       <Row>
         {courses.map((course, index) => (
           <Col md={4} key={index}>

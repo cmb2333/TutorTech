@@ -9,6 +9,7 @@ import logging
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, Range
 import time
+import json
 
 # Load environment variables
 load_dotenv()
@@ -73,6 +74,29 @@ def delete_old_messages():
             )
         )
         
+def generate_prompt_from_preferences(prefs):
+    if not prefs:
+        return "You are a helpful learning assistant."
+
+    prompt_parts = ["You are a personalized tutor. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text."]
+
+    if prefs.get("response_length") == "short":
+        prompt_parts.append("Keep your answers short and concise.")
+    elif prefs.get("response_length") == "long":
+        prompt_parts.append("Provide detailed, thorough explanations.")
+
+    if prefs.get("guidance_style") == "step_by_step":
+        prompt_parts.append("Explain concepts using step-by-step guidance.")
+    elif prefs.get("guidance_style") == "real_world":
+        prompt_parts.append("Use real-world examples to make concepts relatable.")
+
+    if prefs.get("value_focus") == "process":
+        prompt_parts.append("Focus on helping the user understand the learning process.")
+    elif prefs.get("value_focus") == "direct":
+        prompt_parts.append("Focus on delivering direct, actionable answers.")
+
+    return " ".join(prompt_parts)
+
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
 def login():
@@ -401,12 +425,23 @@ def chat():
 
         # AI bot customization
         bot_prompts = {
-            "Tutor": "Provide comprehensive responses...",
-            "Mentor": "Provide strategic guidance...",
-            "Co-Learner": "Provide quick, digestible answers...",
+            "Tutor": "Provide structured, step-by-step explanations in full sentences without using special characters like newlines, bullet points, or bold text. Keep explanations concise, ensuring readability in a continuous paragraph format. Encourage follow-up questions for further elaboration.",
+            "Mentor": "Combine concise answers with practical steps and or real-life examples where applicable. Maintain a balance between elaboration and clarity. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
+            "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions describing only the most important facts. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
         }
 
-        system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
+        # Determine system message
+        if bot_type == "Custom":
+            # Load learning preferences from DB
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT learning_preferences FROM student_information WHERE user_id = %s", (user_id,))
+            result = cursor.fetchone()
+            preferences = json.loads(result["learning_preferences"]) if result and result["learning_preferences"] else {}
+            system_message = generate_prompt_from_preferences(preferences)
+        else:
+            # Fallback to default behavior
+            system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
 
         for message in history:
             if message["role"] == "ai":
@@ -439,6 +474,26 @@ def chat():
     except Exception as e:
         print(f"Error in chat function: {e}")
         return jsonify({"error": "Failed to process the request"}), 500
+
+@app.route('/save-preferences', methods=['POST'])
+def save_preferences():
+    data = request.json
+    user_id = data.get("user_id")
+    preferences = data.get("preferences")  # expects a dictionary
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE student_information SET learning_preferences = %s WHERE user_id = %s",
+            (json.dumps(preferences), user_id)
+        )
+        conn.commit()
+        return jsonify({"message": "Preferences saved"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
 
 # ------------------------- Course Enrollment -------------------------------------- 
 @app.route('/enroll', methods=['POST'])

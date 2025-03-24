@@ -31,6 +31,7 @@ function Dashboard() {
             <Row>
                 <Col md={3} data-aos="slide-right" data-aos-delay="200">
                 <h1>Welcome</h1>
+                    <Link to="/learning-style-quiz">Take Learning Style Quiz</Link>
                     <Container className='Profile'>
                         <Card className="profile-card">
                             <Card.Img

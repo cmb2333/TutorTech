@@ -234,6 +234,7 @@ function CoursePage() {
             <option value="Tutor">Tutor</option>
             <option value="Mentor">Mentor</option>
             <option value="Co-Learner">Co-Learner</option>
+            <option value="Custom">My Learning Style</option>
           </select>
         </label>
 
