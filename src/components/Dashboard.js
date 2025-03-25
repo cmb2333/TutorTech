@@ -8,9 +8,29 @@ import Grades from './Grades';
 
 function Dashboard() {
   const [courses, setCourses] = useState([]);
-  const { user, setUser } = useUser(); 
+  const { user, setUser } = useUser();
+  const [hasPreferences, setHasPreferences] = useState(false);
 
-  // TODO: Implement Analysis functionality using user data
+// TODO: Implement Analysis functionality using user data
+
+    useEffect(() => {
+    const fetchPreferences = async () => {
+        try {
+        const res = await fetch(`http://localhost:5000/get-preferences?user_id=${user.user_id}`);
+        const data = await res.json();
+        if (res.ok && data.preferences) {
+            setHasPreferences(true);
+        }
+        } catch (err) {
+        console.error('Error checking preferences:', err);
+        }
+    };
+
+    if (user?.user_id) {
+        fetchPreferences();
+    }
+    }, [user]);
+
 
     useEffect(() => {
     AOS.init({ duration: 1000, once: true });
@@ -31,7 +51,6 @@ function Dashboard() {
             <Row>
                 <Col md={3} data-aos="slide-right" data-aos-delay="200">
                 <h1>Welcome</h1>
-                    <Link to="/learning-style-quiz">Take Learning Style Quiz</Link>
                     <Container className='Profile'>
                         <Card className="profile-card">
                             <Card.Img
@@ -39,8 +58,15 @@ function Dashboard() {
                             src="/assets/louie-icon.png"
                             className='profile-img'
                             />
-                            <Card.Body className='d-flex flex-column'>
+                            <Card.Body className='d-flex flex-column align-items-center'>
                                 <Card.Title>{user.first_name} {user.last_name}</Card.Title>
+                                <Link
+                                    to="/learning-style-quiz"
+                                    className="learning-style-button mt-3"
+                                    style={{ maxWidth: '220px' }}
+                                >
+                                    {hasPreferences ? "Custom Learning Style" : "Create Your Custom Learning Style"}
+                                </Link>
                             </Card.Body>
                         </Card>
                     </Container>

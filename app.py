@@ -475,6 +475,7 @@ def chat():
         print(f"Error in chat function: {e}")
         return jsonify({"error": "Failed to process the request"}), 500
 
+# ------------------------- Save Preferences -------------------------------------- 
 @app.route('/save-preferences', methods=['POST'])
 def save_preferences():
     data = request.json
@@ -494,6 +495,37 @@ def save_preferences():
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
+
+# ------------------------- Get Preferences  -------------------------------------- 
+@app.route('/get-preferences', methods=['GET'])
+def get_preferences():
+    user_id = request.args.get("user_id")
+
+    try:
+        conn = get_db_connection()
+        # use RealDictCursor to get dict-style row
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(
+            "SELECT learning_preferences FROM student_information WHERE user_id = %s",
+            (user_id,)
+        )
+        result = cursor.fetchone()
+
+        print(f"DB result for user_id {user_id}:", result)
+
+        if result and result["learning_preferences"]:
+            try:
+                preferences = json.loads(result["learning_preferences"])  # FIX: dict-style access
+                return jsonify({"preferences": preferences}), 200
+            except json.JSONDecodeError as e:
+                print("JSON decode error:", e)
+                return jsonify({"error": "Stored preferences are not valid JSON"}), 500
+        else:
+            return jsonify({"preferences": None}), 200
+
+    except Exception as e:
+        print("Exception in get-preferences:", e)
+        return jsonify({"error": str(e)}), 500
 
 # ------------------------- Course Enrollment -------------------------------------- 
 @app.route('/enroll', methods=['POST'])
