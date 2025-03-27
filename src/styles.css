@@ -1,8 +1,9 @@
 :root {
-  --primary-color: #003466;  /* Original dark blue */
-  --secondary-color: #fac01a;
+  --primary-color: #003466;  /* NAU BLUE */
+  --primary-tint: rgba(0, 52, 102, 0.15); /* TINTED NAU BLUE */
+  --secondary-color: #fac01a; /* NAU GOLD */
+  --secondary-tint: rgba(250, 192, 26, .15); /* TINTED NAU GOLD */
   --font-family: 'Roboto Condensed', sans-serif;
-  --lighter-blue: #80aaff;  /* Lighter blue for the login/signup background */
 }
 
 body {
@@ -91,64 +92,6 @@ body {
   font-size: .8rem;
   display: inline-block;
   font-weight: 300;
-}
-
-/* ----------------------- Login/Signup ----------------------- */
-.form-container {
-  margin: 30px;
-  width: 350px;
-  height: 500px;
-  background-color: #fff;
-  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-  border-radius: 10px;
-  box-sizing: border-box;
-  padding: 10px 15px;
-}
-
-.form-container .card-title {
-  text-align: center;
-  margin: 10px 0 10px 0;
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--primary-color);
-  width: 200px;
-  align-self: center;
-}
-
-.login-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-bottom: 15px;
-  align-items: center;
-}
-
-.login-form .input {
-  border-radius: 20px;
-  border: 1px solid #c0c0c0;
-  outline: 0 !important;
-  box-sizing: border-box;
-  padding: 12px 15px;
-}
-
-.login-form .login-button {
-  max-width: fit-content;
-  border-radius: 10px;
-  border: 0 !important;
-  outline: 0 !important;
-  background: var(--primary-color);
-  color: white;
-  cursor: pointer;
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-}
-
-.login-form .login-button:hover {
-  background-color: var(--secondary-color);
-}
-
-.form-btn:active {
-  box-shadow: none;
 }
 
 /* -------------------------- Home Page ------------------------- */
