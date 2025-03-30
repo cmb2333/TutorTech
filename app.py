@@ -97,6 +97,18 @@ def generate_prompt_from_preferences(prefs):
 
     return " ".join(prompt_parts)
 
+# Merging semantic and recent searches for better responses
+def merge_histories(semantic, recent):
+    seen = set()
+    merged = []
+
+    for msg in recent + semantic:
+        key = (msg["role"], msg["content"])
+        if key not in seen:
+            seen.add(key)
+            merged.append(msg)
+    return merged
+
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
 def login():
@@ -393,15 +405,17 @@ def chat():
         # Embed the user query
         user_embedding = embed_text(prompt)
 
+        timestamp = time.time()
+
         # Store user message in Qdrant
         qdrant_client.upsert(
             collection_name=collection_name,
             points=[
                 PointStruct(
                     # Unique ID based on timestamp
-                    id=int(time.time()),
+                    id=int(timestamp * 1000),
                     vector=user_embedding,
-                    payload={"user_id": user_id, "role": "user", "content": prompt}
+                    payload={"user_id": user_id, "role": "user", "content": prompt, "timestamp": timestamp}
                 )
             ]
         )
@@ -414,14 +428,41 @@ def chat():
             collection_name=collection_name,
             query_vector=user_embedding,
             limit=5,
-            #filter={"user_id": user_id},
+            query_filter=Filter(
+                must=[FieldCondition(key="user_id", match={"value": user_id})]
+            ),
             with_payload=True,
             with_vectors=False,
-            score_threshold=0.75,
-            #params={"hnsw_ef": 128, "rerank_top": 3}  
+            score_threshold=0.75,  
         )
 
-        history = [{"role": item.payload["role"], "content": item.payload["content"]} for item in search_results]
+        semantic_history = [
+            {"role": item.payload["role"], "content": item.payload["content"]}
+            for item in search_results
+        ]
+
+        # Attempting to fetch recent interactions
+        scroll_result, _ = qdrant_client.scroll(
+            collection_name=collection_name,
+            limit=10,
+            #filter=Filter(
+            #    must=[FieldCondition(key="user_id", match={"value": user_id})]
+            #),
+            with_payload=True
+        )
+
+        # Getting history via sorted timestamps
+        recent_history = sorted(
+            scroll_result,
+            key=lambda msg: msg.payload.get("timestamp", 0)
+        )[-3:]
+
+        recent_history = [
+            {"role": msg.payload["role"], "content": msg.payload["content"]}
+            for msg in recent_history
+        ]
+
+        history = merge_histories(semantic_history, recent_history)
 
         # AI bot customization
         bot_prompts = {
@@ -444,8 +485,10 @@ def chat():
             system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
 
         for message in history:
-            if message["role"] == "ai":
+            if message["role"] == "ai" or message["role"] == "assistant":
                 message["role"] = "assistant"
+            elif message["role"] == "user":
+                message["role"] = "user"
 
         # Query OpenAI with history
         messages = [{"role": "system", "content": system_message}] + history + [{"role": "user", "content": prompt}]
@@ -458,13 +501,15 @@ def chat():
 
         # Store AI response in Qdrant
         ai_embedding = embed_text(ai_response)
+        ai_timestamp = time.time()
+
         qdrant_client.upsert(
             collection_name=collection_name,
             points=[
                 PointStruct(
-                    id=int(time.time()) + 1,
+                    id=int(ai_timestamp * 1000),
                     vector=ai_embedding,
-                    payload={"user_id": user_id, "role": "assistant", "content": ai_response}
+                    payload={"user_id": user_id, "role": "assistant", "content": ai_response, "timestamp": ai_timestamp}
                 )
             ]
         )
