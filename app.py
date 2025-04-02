@@ -78,12 +78,12 @@ def generate_prompt_from_preferences(prefs):
     if not prefs:
         return "You are a helpful learning assistant."
 
-    prompt_parts = ["You are a personalized tutor. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text."]
+    prompt_parts = ["You are a personalized tutor. Ensure responses are in paragraph format wtih full sentences. Format responses without using special characters like newlines, bullet points, or bold text."]
 
     if prefs.get("response_length") == "short":
         prompt_parts.append("Keep your answers short and concise.")
     elif prefs.get("response_length") == "long":
-        prompt_parts.append("Provide detailed, thorough explanations.")
+        prompt_parts.append("Provide detailed explanations.")
 
     if prefs.get("guidance_style") == "step_by_step":
         prompt_parts.append("Explain concepts using step-by-step guidance.")
@@ -98,16 +98,59 @@ def generate_prompt_from_preferences(prefs):
     return " ".join(prompt_parts)
 
 # Merging semantic and recent searches for better responses
-def merge_histories(semantic, recent):
-    seen = set()
-    merged = []
+def merge_histories(semantic, recent, current_prompt_embedding, qdrant_client):
+    
+    #Prioritize recent messages. Fallback to semantic matches if recent is not helpful.
+    #Google to the rescue...?
+    def is_relevant(msg_embedding):
+        # Cosine similarity between embeddings
+        dot = sum(a * b for a, b in zip(current_prompt_embedding, msg_embedding))
+        norm_a = sum(a * a for a in current_prompt_embedding) ** 0.5
+        norm_b = sum(b * b for b in msg_embedding) ** 0.5
+        return dot / (norm_a * norm_b + 1e-8) >= 0.75
 
-    for msg in recent + semantic:
+    # Filter recent messages by semantic relevance
+    filtered_recent = []
+    for msg in recent:
+        vector_result = qdrant_client.search(
+            collection_name="chat_history",
+            query_vector=current_prompt_embedding,
+            limit=1,
+            query_filter={"must": [{"key": "content", "match": {"value": msg["content"]}}]},
+            with_payload=False,
+            with_vectors=True
+        )
+
+        if vector_result:
+            recent_embedding = vector_result[0].vector
+            if is_relevant(recent_embedding):
+                filtered_recent.append(msg)
+
+    # If recent context isn't enough include semantic history
+    seen = set()
+    final_history = []
+
+    # Add the most relevant recent messages first
+    for msg in filtered_recent[-3:]:  # Take last 3 relevant recent messages
         key = (msg["role"], msg["content"])
         if key not in seen:
+            final_history.append(msg)
             seen.add(key)
-            merged.append(msg)
-    return merged
+
+    # Fill in semantic history if the recent history isnt enough
+    for msg in semantic:
+        key = (msg["role"], msg["content"])
+        if key not in seen and len(final_history) < 6:
+            final_history.append(msg)
+            seen.add(key)
+
+    return final_history
+
+# Detect when the user gives a "vague" prompt. (Use for conversation contexts)
+def is_vague_prompt(prompt):
+    vague_keywords = ["elaborate", "why", "what do you mean", "explain", "more", "clarify", "continue", "shorten", "summarize", "detail", "example", "again", "another"]
+    lowered = prompt.lower().strip()
+    return any(kw in lowered for kw in vague_keywords)
 
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
@@ -399,20 +442,22 @@ def chat():
         prompt = data.get('prompt', '')
         user_id = data.get('userId')
 
-        # Clean old messages before storing a new one
-        delete_old_messages()
+        # Load scroll BEFORE storing the prompt
+        scroll_result, _ = qdrant_client.scroll(
+            collection_name=collection_name,
+            limit=20,
+            with_payload=True,
+            with_vectors=False
+        )
 
-        # Embed the user query
+        # Embed and store the user prompt
         user_embedding = embed_text(prompt)
-
         timestamp = time.time()
 
-        # Store user message in Qdrant
         qdrant_client.upsert(
             collection_name=collection_name,
             points=[
                 PointStruct(
-                    # Unique ID based on timestamp
                     id=int(timestamp * 1000),
                     vector=user_embedding,
                     payload={"user_id": user_id, "role": "user", "content": prompt, "timestamp": timestamp}
@@ -420,60 +465,85 @@ def chat():
             ]
         )
 
-        # Retrieve chat history using semantic search
-        # Get top 5 most relevant messages
-        # Ignore low-quality matches
-        # Take the more precise results
-        search_results = qdrant_client.search(
-            collection_name=collection_name,
-            query_vector=user_embedding,
-            limit=5,
-            query_filter=Filter(
-                must=[FieldCondition(key="user_id", match={"value": user_id})]
-            ),
-            with_payload=True,
-            with_vectors=False,
-            score_threshold=0.75,  
-        )
-
-        semantic_history = [
-            {"role": item.payload["role"], "content": item.payload["content"]}
-            for item in search_results
-        ]
-
-        # Attempting to fetch recent interactions
-        scroll_result, _ = qdrant_client.scroll(
-            collection_name=collection_name,
-            limit=10,
-            #filter=Filter(
-            #    must=[FieldCondition(key="user_id", match={"value": user_id})]
-            #),
-            with_payload=True
-        )
-
-        # Getting history via sorted timestamps
-        recent_history = sorted(
+        # Sort scroll results and build recent history
+        sorted_history = sorted(
             scroll_result,
             key=lambda msg: msg.payload.get("timestamp", 0)
-        )[-3:]
+        )
 
         recent_history = [
             {"role": msg.payload["role"], "content": msg.payload["content"]}
-            for msg in recent_history
+            for msg in sorted_history[-6:]
         ]
 
-        history = merge_histories(semantic_history, recent_history)
+        # Ignore latest prompt (So we dont match the user prompt with itself)
+        filtered_history = [
+            msg for msg in sorted_history
+            if msg.payload.get("content") != prompt and "role" in msg.payload and "content" in msg.payload
+        ]
 
-        # AI bot customization
+        # Filter recent messages (last 10 mins or 15 entries)
+        cutoff = time.time() - (10 * 60)  # 10 minutes ago
+        filtered_history = [
+            msg for msg in sorted_history[-15:]  # last 15 messages
+            if msg.payload.get("timestamp", 0) >= cutoff
+            and msg.payload.get("content") != prompt
+            and "role" in msg.payload and "content" in msg.payload
+        ]
+
+        # Check if prompt is vague
+        inject_last_pair = is_vague_prompt(prompt)
+
+        # Attempt to inject last user→assistant pair (Attempt is the right word)
+        last_pair = []
+        if inject_last_pair:
+            for i in range(len(filtered_history) - 1, 0, -1):
+                u = filtered_history[i - 1]
+                a = filtered_history[i]
+
+                if u.payload["role"] == "user" and a.payload["role"] == "assistant":
+                    last_pair = [
+                        {"role": "user", "content": u.payload["content"]},
+                        {"role": "assistant", "content": a.payload["content"]}
+                    ]
+                    # A dash of debugging
+                    print("\n✅ Using conversation pairing for vague prompt.")
+                    print(f"user: {u.payload['content'][:80]}...")
+                    print(f"assistant: {a.payload['content'][:80]}...")
+                    break
+
+        # Semantic search (only used if last_pair is NOT injected)
+        semantic_history = []
+        if not inject_last_pair:
+            search_results = qdrant_client.search(
+                collection_name=collection_name,
+                query_vector=user_embedding,
+                limit=5,
+                query_filter=Filter(
+                    must=[FieldCondition(key="user_id", match={"value": user_id})]
+                ),
+                with_payload=True,
+                with_vectors=False,
+                score_threshold=0.75
+            )
+            semantic_history = [
+                {"role": item.payload["role"], "content": item.payload["content"]}
+                for item in search_results
+            ]
+
+        # Merge history if no last_pair
+        history = []
+        if not inject_last_pair:
+            history = merge_histories(semantic_history, recent_history, user_embedding, qdrant_client)
+
+        # Choose system message
         bot_prompts = {
             "Tutor": "Provide structured, step-by-step explanations in full sentences without using special characters like newlines, bullet points, or bold text. Keep explanations concise, ensuring readability in a continuous paragraph format. Encourage follow-up questions for further elaboration.",
             "Mentor": "Combine concise answers with practical steps and or real-life examples where applicable. Maintain a balance between elaboration and clarity. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
             "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions describing only the most important facts. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
         }
 
-        # Determine system message
         if bot_type == "Custom":
-            # Load learning preferences from DB
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("SELECT learning_preferences FROM student_information WHERE user_id = %s", (user_id,))
@@ -481,28 +551,31 @@ def chat():
             preferences = json.loads(result["learning_preferences"]) if result and result["learning_preferences"] else {}
             system_message = generate_prompt_from_preferences(preferences)
         else:
-            # Fallback to default behavior
             system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
 
-        for message in history:
-            if message["role"] == "ai" or message["role"] == "assistant":
-                message["role"] = "assistant"
-            elif message["role"] == "user":
-                message["role"] = "user"
+        # Build final message context
+        messages = [{"role": "system", "content": system_message}]
+        if inject_last_pair:
+            messages += last_pair
+        else:
+            messages += history
+        messages.append({"role": "user", "content": prompt})
 
-        # Query OpenAI with history
-        messages = [{"role": "system", "content": system_message}] + history + [{"role": "user", "content": prompt}]
+        # Debug final messages
+        print("\n📤 Final Message Stack:")
+        for m in messages:
+            print(f"{m['role']}: {m['content'][:80]}...")
+
+        # Send to OpenAI
         completion = client.chat.completions.create(
             model="gpt-4o",
             messages=messages
         )
-
         ai_response = completion.choices[0].message.content
 
-        # Store AI response in Qdrant
+        # Store assistant reply
         ai_embedding = embed_text(ai_response)
         ai_timestamp = time.time()
-
         qdrant_client.upsert(
             collection_name=collection_name,
             points=[
