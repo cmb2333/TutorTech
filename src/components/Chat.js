@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-function Chat({ botType, courseId, userId, externalPrompt }) {
+function Chat({ botType, courseId, userId, externalPrompt, historyEnabled }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const textareaRef = useRef(null);
@@ -58,7 +58,7 @@ function Chat({ botType, courseId, userId, externalPrompt }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ botType, prompt: promptText, courseId, userId }),
+        body: JSON.stringify({ botType, prompt: promptText, courseId, userId, historyEnabled }),
       });
   
       const data = await response.json(); // parse backend response

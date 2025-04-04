@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, ProgressBar } from 'react-bootstrap';
+import { Container, Row, Col, Card, ProgressBar, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import AOS from 'aos';
@@ -68,6 +68,32 @@ function Dashboard() {
                                     {hasPreferences ? "Custom Learning Style" : "Create Your Custom Learning Style"}
                                 </Link>
                             </Card.Body>
+                            <Form className="mt-3">
+                                <Form.Check
+                                    type="switch"
+                                    id="history-toggle"
+                                    label="Enable Chat History & Semantic Search"
+                                    checked={user?.history_enabled}
+                                    onChange={async () => {
+                                    const updated = !user.history_enabled;
+                                    const res = await fetch('http://localhost:5000/update-history-setting', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                        user_id: user.user_id,
+                                        history_enabled: updated,
+                                        }),
+                                    });
+
+                                    if (res.ok) {
+                                        setUser({ ...user, history_enabled: updated });
+                                    }
+                                    }}
+                                />
+                                <p className="text-muted small">
+                                    Enabling history may slightly slow down the bot. Data is only used within this platform.
+                                </p>
+                                </Form>
                         </Card>
                     </Container>
                 </Col>

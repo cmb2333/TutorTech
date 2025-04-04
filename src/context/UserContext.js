@@ -16,9 +16,13 @@ export const UserProvider = ({ children }) => {
           credentials: 'include',
         });
 
+        // Default users history to true
         if (response.ok) {
           const data = await response.json();
-          setUser(data);
+          setUser({
+            ...data,
+            history_enabled: data.history_enabled ?? true,
+          });
         } else {
           setUser(null);
         }

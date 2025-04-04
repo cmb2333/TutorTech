@@ -244,6 +244,7 @@ function CoursePage() {
           courseId={courseId} 
           userId={user?.user_id} 
           externalPrompt={externalPrompt}
+          historyEnabled={user?.history_enabled}
         />
       </div>
     </div>

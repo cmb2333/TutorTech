@@ -302,3 +302,7 @@ WHERE question_text = 'Explain how control charts are used in SPC.';
 
 UPDATE assignment_questions SET correct_answer = '["common", "cause", "natural", "special", "unusual"]'::jsonb
 WHERE question_text = 'Describe the difference between common cause and special cause variation.';
+
+-- UPDATE student information to include a history toggle
+ALTER TABLE student_information ADD COLUMN history_enabled BOOLEAN DEFAULT TRUE;
+

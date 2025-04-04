@@ -250,7 +250,7 @@ def session():
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT user_id, first_name, last_name, email FROM student_information WHERE user_id = %s",
+            "SELECT user_id, first_name, last_name, email, history_enabled FROM student_information WHERE user_id = %s",
             (user_id,)
         )
         user_info = cursor.fetchone()
@@ -261,6 +261,7 @@ def session():
                 "first_name": user_info["first_name"],
                 "last_name": user_info["last_name"],
                 "email": user_info["email"],
+                "history_enabled": user_info.get("history_enabled", True),
                 "message": "Session active"
             }), 200
         else:
@@ -441,6 +442,40 @@ def chat():
         bot_type = data.get('botType', 'Tutor')
         prompt = data.get('prompt', '')
         user_id = data.get('userId')
+        history_enabled = data.get('historyEnabled', True)
+
+        # Choose system message
+        bot_prompts = {
+            "Tutor": "Provide structured, step-by-step explanations in full sentences without using special characters like newlines, bullet points, or bold text. Keep explanations concise, ensuring readability in a continuous paragraph format. Encourage follow-up questions for further elaboration.",
+            "Mentor": "Combine concise answers with practical steps and or real-life examples where applicable. Maintain a balance between elaboration and clarity. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
+            "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions describing only the most important facts. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
+        }
+
+        # Fecth the users custom learning preference
+        if bot_type == "Custom":
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT learning_preferences FROM student_information WHERE user_id = %s", (user_id,))
+            result = cursor.fetchone()
+            preferences = json.loads(result["learning_preferences"]) if result and result["learning_preferences"] else {}
+            system_message = generate_prompt_from_preferences(preferences)
+        else:
+            system_message = bot_prompts.get(bot_type, "You are a helpful assistant. If the user's request seems vague, reference their last message or your most recent answer.")
+
+        if not history_enabled:
+            print("\n🚫 History is disabled. Skipping context.")
+            messages = [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ]
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages
+            )
+
+            ai_response = completion.choices[0].message.content
+            return jsonify({"response": ai_response}), 200
 
         # Load scroll BEFORE storing the prompt
         scroll_result, _ = qdrant_client.scroll(
@@ -536,23 +571,6 @@ def chat():
         if not inject_last_pair:
             history = merge_histories(semantic_history, recent_history, user_embedding, qdrant_client)
 
-        # Choose system message
-        bot_prompts = {
-            "Tutor": "Provide structured, step-by-step explanations in full sentences without using special characters like newlines, bullet points, or bold text. Keep explanations concise, ensuring readability in a continuous paragraph format. Encourage follow-up questions for further elaboration.",
-            "Mentor": "Combine concise answers with practical steps and or real-life examples where applicable. Maintain a balance between elaboration and clarity. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
-            "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions describing only the most important facts. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
-        }
-
-        if bot_type == "Custom":
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT learning_preferences FROM student_information WHERE user_id = %s", (user_id,))
-            result = cursor.fetchone()
-            preferences = json.loads(result["learning_preferences"]) if result and result["learning_preferences"] else {}
-            system_message = generate_prompt_from_preferences(preferences)
-        else:
-            system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
-
         # Build final message context
         messages = [{"role": "system", "content": system_message}]
         if inject_last_pair:
@@ -592,6 +610,26 @@ def chat():
     except Exception as e:
         print(f"Error in chat function: {e}")
         return jsonify({"error": "Failed to process the request"}), 500
+
+@app.route('/update-history-setting', methods=['POST'])
+def update_history_setting():
+    data = request.json
+    user_id = data.get("user_id")
+    history_enabled = data.get("history_enabled")
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE student_information SET history_enabled = %s WHERE user_id = %s",
+            (history_enabled, user_id)
+        )
+        conn.commit()
+        return jsonify({"message": "History setting updated"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
 
 # ------------------------- Save Preferences -------------------------------------- 
 @app.route('/save-preferences', methods=['POST'])
