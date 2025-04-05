@@ -27,7 +27,10 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_cred
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Initialize Qdrant
-qdrant_client = QdrantClient("localhost", port=6333)
+qdrant_client = QdrantClient(
+    url=os.getenv("QDRANT_HOST"),
+    api_key=os.getenv("QDRANT_API_KEY")
+)
 
 # Create a collection if it doesn't exist
 # 1536 is the size for OpenAI embeddings
