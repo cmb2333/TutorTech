@@ -16,7 +16,7 @@ function Dashboard() {
     useEffect(() => {
     const fetchPreferences = async () => {
         try {
-        const res = await fetch(`http://localhost:5000/get-preferences?user_id=${user.user_id}`);
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/get-preferences?user_id=${user.user_id}`);
         const data = await res.json();
         if (res.ok && data.preferences) {
             setHasPreferences(true);
@@ -39,7 +39,7 @@ function Dashboard() {
   // Get only the users enrolled courses
   useEffect(() => {
     if (user) {
-      fetch(`http://localhost:5000/enrolled-courses/${user.user_id}`)
+      fetch(`${process.env.REACT_APP_API_URL}/enrolled-courses/${user.user_id}`)
         .then((response) => response.json())
         .then((data) => setCourses(data))
         .catch((error) => console.error('Error fetching enrolled courses:', error));
@@ -76,7 +76,7 @@ function Dashboard() {
                                     checked={user?.history_enabled}
                                     onChange={async () => {
                                     const updated = !user.history_enabled;
-                                    const res = await fetch('http://localhost:5000/update-history-setting', {
+                                    const res = await fetch('${process.env.REACT_APP_API_URL}/update-history-setting', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({

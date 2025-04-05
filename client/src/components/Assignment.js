@@ -27,7 +27,7 @@ const Assignment = ({ assignment, onBack, userId = 'guest', onAskChat }) => {
         setError("");
 
         try {
-            const response = await fetch(`http://localhost:5000/api/assignments/${assignmentId}/questions`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assignments/${assignmentId}/questions`);
             if (!response.ok) throw new Error("failed to load questions");
 
             const data = await response.json();
@@ -66,7 +66,7 @@ const Assignment = ({ assignment, onBack, userId = 'guest', onAskChat }) => {
         setSubmitting(true); // show spinner
 
         try {
-            const response = await fetch(`http://localhost:5000/api/assignments/${assignment.assignment_id}/submit`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assignments/${assignment.assignment_id}/submit`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

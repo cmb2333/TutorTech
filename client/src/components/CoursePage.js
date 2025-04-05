@@ -57,7 +57,7 @@ function CoursePage() {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/courses/${courseId}`);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/courses/${courseId}`);
         const data = await response.json();
 
         if (response.ok) {

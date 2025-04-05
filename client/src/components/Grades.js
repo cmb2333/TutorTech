@@ -9,7 +9,7 @@ function Grades({ userId, filterCourse }) {
     // fetch grades from API
     useEffect(() => {
         setLoading(true);
-        fetch(`http://localhost:5000/api/grades/${userId}`)
+        fetch(`${process.env.REACT_APP_API_URL}/api/grades/${userId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Network response was not ok");

@@ -11,7 +11,7 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const fetchUserSession = async () => {
       try {
-        const response = await fetch('http://localhost:5000/session', {
+        const response = await fetch('${process.env.REACT_APP_API_URL}/session', {
           method: 'GET',
           credentials: 'include',
         });
