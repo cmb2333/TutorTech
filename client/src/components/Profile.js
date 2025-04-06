@@ -42,7 +42,7 @@ const Profile = () => {
   // Save changes and send to backend
   const handleSave = async () => {
     try {
-      const response = await fetch('${process.env.REACT_APP_API_URL}/update-profile', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/update-profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.user_id, ...formData }),
@@ -67,7 +67,7 @@ const Profile = () => {
     }
 
     try {
-      const response = await fetch('${process.env.REACT_APP_API_URL}/change-password', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/change-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

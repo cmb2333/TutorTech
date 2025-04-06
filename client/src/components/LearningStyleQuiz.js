@@ -46,7 +46,7 @@ const LearningStyleQuiz = () => {
   // ------------- Handle Save Preferences ---------------
   const handleSubmit = async () => {
     try {
-      const res = await fetch('${process.env.REACT_APP_API_URL}/save-preferences', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/save-preferences`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.user_id, preferences }),

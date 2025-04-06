@@ -76,7 +76,7 @@ function Dashboard() {
                                     checked={user?.history_enabled}
                                     onChange={async () => {
                                     const updated = !user.history_enabled;
-                                    const res = await fetch('${process.env.REACT_APP_API_URL}/update-history-setting', {
+                                    const res = await fetch(`${process.env.REACT_APP_API_URL}/update-history-setting`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
