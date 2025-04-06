@@ -155,6 +155,23 @@ def is_vague_prompt(prompt):
     lowered = prompt.lower().strip()
     return any(kw in lowered for kw in vague_keywords)
 
+# Check hosted DB connection via Ping
+@app.route("/ping")
+def ping():
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv('DB_HOST'),
+            dbname=os.getenv('DB_NAME'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            port=os.getenv('DB_PORT', 5432)
+        )
+        conn.close()
+        return {"message": "DB connection successful"}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
 def login():
