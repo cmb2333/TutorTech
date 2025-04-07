@@ -5,8 +5,12 @@ import { useUser } from '../context/UserContext';
 const ProtectedRoute = ({ children }) => {
     
   // Get user info from UserContext
-  const { user } = useUser();
+  const { user, loading } = useUser();
 
+  if (loading) {
+    return null;
+  }
+  
   // Redirect to login page if not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
