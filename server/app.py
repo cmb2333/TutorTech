@@ -207,7 +207,7 @@ def login():
                 "first_name": user_info["first_name"],
                 "last_name": user_info["last_name"]
             }))
-            response.set_cookie("user_id", user_id, httponly=True, samesite='Strict')
+            response.set_cookie("user_id", user_id, httponly=True, samesite='None', secure=True)
             return response, 200
         else:
             return jsonify({"message": "User information not found"}), 404

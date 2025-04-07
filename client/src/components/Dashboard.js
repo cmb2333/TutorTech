@@ -69,11 +69,12 @@ function Dashboard() {
                                 </Link>
                             </Card.Body>
                             <Form className="mt-3">
+                            {user && (
                                 <Form.Check
                                     type="switch"
                                     id="history-toggle"
                                     label="Enable Chat History & Semantic Search"
-                                    checked={user?.history_enabled}
+                                    checked={user.history_enabled}
                                     onChange={async () => {
                                     const updated = !user.history_enabled;
                                     const res = await fetch(`${process.env.REACT_APP_API_URL}/update-history-setting`, {
@@ -90,6 +91,7 @@ function Dashboard() {
                                     }
                                     }}
                                 />
+                            )}
                                 <p className="text-muted small">
                                     Enabling history may slightly slow down the bot. Data is only used within this platform.
                                 </p>
