@@ -451,7 +451,8 @@ def get_course(course_id):
 def chat():
     if request.method == 'OPTIONS':
         response = make_response()
-        response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+        origin = request.headers.get("Origin")
+        response.headers["Access-Control-Allow-Origin"] = origin if origin else "*"
         response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
         response.headers["Access-Control-Allow-Credentials"] = "true"
