@@ -11,7 +11,7 @@ function Header() {
   // Handle logout - clear user from context and redirect
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:5000/logout', {
+      await fetch(`${process.env.REACT_APP_API_URL}/logout`, {
         method: 'POST',
         credentials: 'include',
       });

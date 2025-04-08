@@ -492,3 +492,9 @@ INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_
 INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score) VALUES
   ('ASGMT11', 10, 'Data Set Analysis', 15),
   ('ASGMT12', 10, 'Statistical Report', 20);
+UPDATE assignment_questions SET correct_answer = '["common", "cause", "natural", "special", "unusual"]'::jsonb
+WHERE question_text = 'Describe the difference between common cause and special cause variation.';
+
+-- UPDATE student information to include a history toggle
+ALTER TABLE student_information ADD COLUMN history_enabled BOOLEAN DEFAULT TRUE;
+

@@ -18,9 +18,8 @@ function Grades({ userId, filterCourse, onAssignmentSelect }) {
 
     /* -------------------- Fetch grades on mount or userId change -------------------- */
     useEffect(() => {
-        setLoading(true); // trigger loading spinner when fetching starts
-
-        fetch(`http://localhost:5000/api/grades/${userId}`)
+        setLoading(true);
+        fetch(`${process.env.REACT_APP_API_URL}/api/grades/${userId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Network response was not ok");

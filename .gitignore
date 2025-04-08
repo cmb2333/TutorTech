@@ -12,3 +12,13 @@ venv/
 
 # Ignore py cache
 __pycache__/
+
+# Frontend
+/client/node_modules/
+/client/build/
+/client/.env
+
+# Backend
+/server/__pycache__/
+/server/*.pyc
+/server/.env

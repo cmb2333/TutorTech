@@ -21,13 +21,16 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = Flask(__name__)
 
 # Enable CORS for the app (Hopefully this will fix cors issues)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # Configure logging 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Initialize Qdrant
-qdrant_client = QdrantClient("localhost", port=6333)
+qdrant_client = QdrantClient(
+    url=os.getenv("QDRANT_HOST"),
+    api_key=os.getenv("QDRANT_API_KEY")
+)
 
 # Create a collection if it doesn't exist
 # 1536 is the size for OpenAI embeddings
@@ -78,12 +81,12 @@ def generate_prompt_from_preferences(prefs):
     if not prefs:
         return "You are a helpful learning assistant."
 
-    prompt_parts = ["You are a personalized tutor. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text."]
+    prompt_parts = ["You are a personalized tutor. Ensure responses are in paragraph format wtih full sentences. Format responses without using special characters like newlines, bullet points, or bold text."]
 
     if prefs.get("response_length") == "short":
         prompt_parts.append("Keep your answers short and concise.")
     elif prefs.get("response_length") == "long":
-        prompt_parts.append("Provide detailed, thorough explanations.")
+        prompt_parts.append("Provide detailed explanations.")
 
     if prefs.get("guidance_style") == "step_by_step":
         prompt_parts.append("Explain concepts using step-by-step guidance.")
@@ -96,6 +99,78 @@ def generate_prompt_from_preferences(prefs):
         prompt_parts.append("Focus on delivering direct, actionable answers.")
 
     return " ".join(prompt_parts)
+
+# Merging semantic and recent searches for better responses
+def merge_histories(semantic, recent, current_prompt_embedding, qdrant_client):
+    
+    #Prioritize recent messages. Fallback to semantic matches if recent is not helpful.
+    #Google to the rescue...?
+    def is_relevant(msg_embedding):
+        # Cosine similarity between embeddings
+        dot = sum(a * b for a, b in zip(current_prompt_embedding, msg_embedding))
+        norm_a = sum(a * a for a in current_prompt_embedding) ** 0.5
+        norm_b = sum(b * b for b in msg_embedding) ** 0.5
+        return dot / (norm_a * norm_b + 1e-8) >= 0.75
+
+    # Filter recent messages by semantic relevance
+    filtered_recent = []
+    for msg in recent:
+        vector_result = qdrant_client.search(
+            collection_name="chat_history",
+            query_vector=current_prompt_embedding,
+            limit=1,
+            query_filter={"must": [{"key": "content", "match": {"value": msg["content"]}}]},
+            with_payload=False,
+            with_vectors=True
+        )
+
+        if vector_result:
+            recent_embedding = vector_result[0].vector
+            if is_relevant(recent_embedding):
+                filtered_recent.append(msg)
+
+    # If recent context isn't enough include semantic history
+    seen = set()
+    final_history = []
+
+    # Add the most relevant recent messages first
+    for msg in filtered_recent[-3:]:  # Take last 3 relevant recent messages
+        key = (msg["role"], msg["content"])
+        if key not in seen:
+            final_history.append(msg)
+            seen.add(key)
+
+    # Fill in semantic history if the recent history isnt enough
+    for msg in semantic:
+        key = (msg["role"], msg["content"])
+        if key not in seen and len(final_history) < 6:
+            final_history.append(msg)
+            seen.add(key)
+
+    return final_history
+
+# Detect when the user gives a "vague" prompt. (Use for conversation contexts)
+def is_vague_prompt(prompt):
+    vague_keywords = ["elaborate", "why", "what do you mean", "explain", "more", "clarify", "continue", "shorten", "summarize", "detail", "example", "again", "another"]
+    lowered = prompt.lower().strip()
+    return any(kw in lowered for kw in vague_keywords)
+
+# Check hosted DB connection via Ping
+@app.route("/ping")
+def ping():
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv('DB_HOST'),
+            dbname=os.getenv('DB_NAME'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            port=os.getenv('DB_PORT', 5432)
+        )
+        conn.close()
+        return {"message": "DB connection successful"}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
 
 # -------------------------------- User Login --------------------------------
 @app.route('/login', methods=['POST'])
@@ -132,7 +207,7 @@ def login():
                 "first_name": user_info["first_name"],
                 "last_name": user_info["last_name"]
             }))
-            response.set_cookie("user_id", user_id, httponly=True, samesite='Strict')
+            response.set_cookie("user_id", user_id, httponly=True, samesite='None', secure=True)
             return response, 200
         else:
             return jsonify({"message": "User information not found"}), 404
@@ -195,7 +270,7 @@ def session():
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT user_id, first_name, last_name, email FROM student_information WHERE user_id = %s",
+            "SELECT user_id, first_name, last_name, email, history_enabled FROM student_information WHERE user_id = %s",
             (user_id,)
         )
         user_info = cursor.fetchone()
@@ -206,6 +281,7 @@ def session():
                 "first_name": user_info["first_name"],
                 "last_name": user_info["last_name"],
                 "email": user_info["email"],
+                "history_enabled": user_info.get("history_enabled", True),
                 "message": "Session active"
             }), 200
         else:
@@ -481,7 +557,8 @@ def get_module_assignments(module_id):
 def chat():
     if request.method == 'OPTIONS':
         response = make_response()
-        response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+        origin = request.headers.get("Origin")
+        response.headers["Access-Control-Allow-Origin"] = origin if origin else "*"
         response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
         response.headers["Access-Control-Allow-Credentials"] = "true"
@@ -492,53 +569,17 @@ def chat():
         bot_type = data.get('botType', 'Tutor')
         prompt = data.get('prompt', '')
         user_id = data.get('userId')
+        history_enabled = data.get('historyEnabled', True)
 
-        # Clean old messages before storing a new one
-        delete_old_messages()
-
-        # Embed the user query
-        user_embedding = embed_text(prompt)
-
-        # Store user message in Qdrant
-        qdrant_client.upsert(
-            collection_name=collection_name,
-            points=[
-                PointStruct(
-                    # Unique ID based on timestamp
-                    id=int(time.time()),
-                    vector=user_embedding,
-                    payload={"user_id": user_id, "role": "user", "content": prompt}
-                )
-            ]
-        )
-
-        # Retrieve chat history using semantic search
-        # Get top 5 most relevant messages
-        # Ignore low-quality matches
-        # Take the more precise results
-        search_results = qdrant_client.search(
-            collection_name=collection_name,
-            query_vector=user_embedding,
-            limit=5,
-            #filter={"user_id": user_id},
-            with_payload=True,
-            with_vectors=False,
-            score_threshold=0.75,
-            #params={"hnsw_ef": 128, "rerank_top": 3}  
-        )
-
-        history = [{"role": item.payload["role"], "content": item.payload["content"]} for item in search_results]
-
-        # AI bot customization
+        # Choose system message
         bot_prompts = {
             "Tutor": "Provide structured, step-by-step explanations in full sentences without using special characters like newlines, bullet points, or bold text. Keep explanations concise, ensuring readability in a continuous paragraph format. Encourage follow-up questions for further elaboration.",
             "Mentor": "Combine concise answers with practical steps and or real-life examples where applicable. Maintain a balance between elaboration and clarity. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
             "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions describing only the most important facts. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
         }
 
-        # Determine system message
+        # Fecth the users custom learning preference
         if bot_type == "Custom":
-            # Load learning preferences from DB
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("SELECT learning_preferences FROM student_information WHERE user_id = %s", (user_id,))
@@ -546,31 +587,147 @@ def chat():
             preferences = json.loads(result["learning_preferences"]) if result and result["learning_preferences"] else {}
             system_message = generate_prompt_from_preferences(preferences)
         else:
-            # Fallback to default behavior
-            system_message = bot_prompts.get(bot_type, "You are a helpful assistant.")
+            system_message = bot_prompts.get(bot_type, "You are a helpful assistant. If the user's request seems vague, reference their last message or your most recent answer.")
 
-        for message in history:
-            if message["role"] == "ai":
-                message["role"] = "assistant"
+        if not history_enabled:
+            print("\n🚫 History is disabled. Skipping context.")
+            messages = [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ]
 
-        # Query OpenAI with history
-        messages = [{"role": "system", "content": system_message}] + history + [{"role": "user", "content": prompt}]
-        completion = client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages
+            )
+
+            ai_response = completion.choices[0].message.content
+            return jsonify({"response": ai_response}), 200
+
+        # Load scroll BEFORE storing the prompt
+        scroll_result, _ = qdrant_client.scroll(
+            collection_name=collection_name,
+            limit=20,
+            with_payload=True,
+            with_vectors=False
         )
 
-        ai_response = completion.choices[0].message.content
+        # Embed and store the user prompt
+        user_embedding = embed_text(prompt)
+        timestamp = time.time()
 
-        # Store AI response in Qdrant
-        ai_embedding = embed_text(ai_response)
         qdrant_client.upsert(
             collection_name=collection_name,
             points=[
                 PointStruct(
-                    id=int(time.time()) + 1,
+                    id=int(timestamp * 1000),
+                    vector=user_embedding,
+                    payload={"user_id": user_id, "role": "user", "content": prompt, "timestamp": timestamp}
+                )
+            ]
+        )
+
+        # Sort scroll results and build recent history
+        sorted_history = sorted(
+            scroll_result,
+            key=lambda msg: msg.payload.get("timestamp", 0)
+        )
+
+        recent_history = [
+            {"role": msg.payload["role"], "content": msg.payload["content"]}
+            for msg in sorted_history[-6:]
+        ]
+
+        # Ignore latest prompt (So we dont match the user prompt with itself)
+        filtered_history = [
+            msg for msg in sorted_history
+            if msg.payload.get("content") != prompt and "role" in msg.payload and "content" in msg.payload
+        ]
+
+        # Filter recent messages (last 10 mins or 15 entries)
+        cutoff = time.time() - (10 * 60)  # 10 minutes ago
+        filtered_history = [
+            msg for msg in sorted_history[-15:]  # last 15 messages
+            if msg.payload.get("timestamp", 0) >= cutoff
+            and msg.payload.get("content") != prompt
+            and "role" in msg.payload and "content" in msg.payload
+        ]
+
+        # Check if prompt is vague
+        inject_last_pair = is_vague_prompt(prompt)
+
+        # Attempt to inject last user→assistant pair (Attempt is the right word)
+        last_pair = []
+        if inject_last_pair:
+            for i in range(len(filtered_history) - 1, 0, -1):
+                u = filtered_history[i - 1]
+                a = filtered_history[i]
+
+                if u.payload["role"] == "user" and a.payload["role"] == "assistant":
+                    last_pair = [
+                        {"role": "user", "content": u.payload["content"]},
+                        {"role": "assistant", "content": a.payload["content"]}
+                    ]
+                    # A dash of debugging
+                    print("\n✅ Using conversation pairing for vague prompt.")
+                    print(f"user: {u.payload['content'][:80]}...")
+                    print(f"assistant: {a.payload['content'][:80]}...")
+                    break
+
+        # Semantic search (only used if last_pair is NOT injected)
+        semantic_history = []
+        if not inject_last_pair:
+            search_results = qdrant_client.search(
+                collection_name=collection_name,
+                query_vector=user_embedding,
+                limit=5,
+                query_filter=Filter(
+                    must=[FieldCondition(key="user_id", match={"value": user_id})]
+                ),
+                with_payload=True,
+                with_vectors=False,
+                score_threshold=0.75
+            )
+            semantic_history = [
+                {"role": item.payload["role"], "content": item.payload["content"]}
+                for item in search_results
+            ]
+
+        # Merge history if no last_pair
+        history = []
+        if not inject_last_pair:
+            history = merge_histories(semantic_history, recent_history, user_embedding, qdrant_client)
+
+        # Build final message context
+        messages = [{"role": "system", "content": system_message}]
+        if inject_last_pair:
+            messages += last_pair
+        else:
+            messages += history
+        messages.append({"role": "user", "content": prompt})
+
+        # Debug final messages
+        print("\n📤 Final Message Stack:")
+        for m in messages:
+            print(f"{m['role']}: {m['content'][:80]}...")
+
+        # Send to OpenAI
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages
+        )
+        ai_response = completion.choices[0].message.content
+
+        # Store assistant reply
+        ai_embedding = embed_text(ai_response)
+        ai_timestamp = time.time()
+        qdrant_client.upsert(
+            collection_name=collection_name,
+            points=[
+                PointStruct(
+                    id=int(ai_timestamp * 1000),
                     vector=ai_embedding,
-                    payload={"user_id": user_id, "role": "assistant", "content": ai_response}
+                    payload={"user_id": user_id, "role": "assistant", "content": ai_response, "timestamp": ai_timestamp}
                 )
             ]
         )
@@ -580,6 +737,26 @@ def chat():
     except Exception as e:
         print(f"Error in chat function: {e}")
         return jsonify({"error": "Failed to process the request"}), 500
+
+@app.route('/update-history-setting', methods=['POST'])
+def update_history_setting():
+    data = request.json
+    user_id = data.get("user_id")
+    history_enabled = data.get("history_enabled")
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE student_information SET history_enabled = %s WHERE user_id = %s",
+            (history_enabled, user_id)
+        )
+        conn.commit()
+        return jsonify({"message": "History setting updated"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
 
 # ------------------------- Save Preferences -------------------------------------- 
 @app.route('/save-preferences', methods=['POST'])

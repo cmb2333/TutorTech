@@ -16,13 +16,13 @@ function Courses() {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:5000/courses')
+    fetch(`${process.env.REACT_APP_API_URL}/courses`)
       .then((response) => response.json())
       .then((data) => setCourses(data))
       .catch((error) => console.error('Error fetching courses:', error));
     
     if (user) {
-      fetch(`http://localhost:5000/enrolled-courses/${user.user_id}`)
+      fetch(`${process.env.REACT_APP_API_URL}/enrolled-courses/${user.user_id}`)
         .then((response) => response.json())
         .then((data) => setEnrolledCourses(data.map(course => course.course_code)))
         .catch((error) => console.error('Error fetching enrolled courses:', error));
@@ -34,7 +34,7 @@ function Courses() {
     if (!user) {
       navigate('/login');
     } else {
-      fetch('http://localhost:5000/enroll', {
+      fetch(`${process.env.REACT_APP_API_URL}/enroll`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.user_id, course_code }),

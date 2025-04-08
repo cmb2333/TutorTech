@@ -20,7 +20,7 @@ const LearningStyleQuiz = () => {
   useEffect(() => {
     const fetchPreferences = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/get-preferences?user_id=${user.user_id}`);
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/get-preferences?user_id=${user.user_id}`);
         const data = await res.json();
         console.log("Fetched learning preferences:", data);
         if (res.ok && data.preferences) {
@@ -46,7 +46,7 @@ const LearningStyleQuiz = () => {
   // ------------- Handle Save Preferences ---------------
   const handleSubmit = async () => {
     try {
-      const res = await fetch('http://localhost:5000/save-preferences', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/save-preferences`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.user_id, preferences }),
