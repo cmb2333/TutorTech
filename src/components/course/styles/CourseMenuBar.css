@@ -1,0 +1,182 @@
+/* ----------------------- Layout Container ------------------------ */
+  .course-menu-bar-wrapper {
+    width: 100%;
+    z-index: 10;
+  }
+  
+/* ---------------------- Top Navigation Bar ------------------------ */
+  .course-menu-bar {
+    background-color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+  }
+  
+/* ----------------------- Course Title Block ----------------------- */
+  .course-menu-bar h5 {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1.2rem;
+  }
+  
+  .section-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #555;
+  }
+  
+/* ---------------------- Navbar Action Buttons --------------------- */
+  .nav-action {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    color: var(--primary-color);
+    transition: color 0.2s ease;
+  }
+  
+  .nav-action:hover {
+    color: var(--primary-tint);
+  }
+  
+  .nav-action h6 {
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
+  }
+  
+  .material-symbols-outlined.icon-large {
+    font-size: 30px;
+    margin-bottom: 4px;
+  }
+  
+/* ------------------------- Dropdown Panel ------------------------- */
+  .module-dropdown {
+    background-color: #fdfdfd;
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+
+/* Dropdown animation */
+@keyframes slideDownFromContainer {
+    0% {
+      opacity: 0;
+      transform: translateY(-10%);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .slide-in-from-top {
+    animation: slideDownFromContainer 0.8s ease-out;
+  }
+  
+  
+/* --------------------- Dropdown: Columns Base ---------------------- */
+  .dropdown-col {
+    flex: 1;
+    min-width: 0;
+    background-color: var(--secondary-color);
+  }
+  
+/* --------------------- Dropdown: Module List ---------------------- */
+  .module-list {
+    min-width: 250px;
+    background-color: var(--secondary-color);
+  }
+  
+  .module-list h6 {
+    color: var(--primary-color);
+  }
+  
+  .module-item {
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--primary-color);
+    transition: background-color 0.25s ease;
+  }
+  
+  .module-item:hover,
+  .module-item.active {
+    background-color: var(--primary-tint);
+  }
+  
+/* -------------------- Dropdown: Module Preview --------------------- */
+  .module-preview {
+    flex-grow: 1;
+  }
+  
+  .module-preview h6 {
+    font-size: 0.95rem;
+    color: var(--primary-color);
+    font-weight: 600;
+  }
+  
+  .preview-item {
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #444;
+    padding: 6px 10px;
+    border-radius: 4px;
+    transition: background-color 0.25s ease;
+  }
+  
+  .preview-item:hover {
+    background-color: var(--primary-tint);
+    color: var(--primary-color);
+  }
+  
+/* --------------------- Dropdown Header Row ------------------------ */
+  .collapsible-header {
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+
+/* ------------- Dropdown Collapse Button Styling ------------------- */
+.collapse-dropdown-btn-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background: #fdfdfd;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  /* Collapse button with up arrow */
+  .collapse-dropdown-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-bottom-right-radius: 100% 100%;
+    border-bottom-left-radius: 100% 100%;
+    padding: 0.2rem 1rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+  }
+  
+  .collapse-dropdown-btn:hover {
+    background-color: var(--secondary-color);
+    color: black;
+  }
+  
+  .collapse-dropdown-btn .material-symbols-outlined {
+    font-size: 16px;
+  }
+  
+  
+  
+

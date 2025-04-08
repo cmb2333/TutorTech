@@ -1,27 +1,47 @@
+/* ------------------------ Assignment.js ------------------------
+Component responsible for 
+  - rendering assignment questions
+  - collecting user responses
+  - submitting answers for grading
+  - displaying results with AI explanations
+----------------------------------------------------------------- */
+
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Spinner, Alert } from 'react-bootstrap';
 
-const Assignment = ({ assignment, onBack, userId = 'guest', onAskChat }) => {
-    // TODO: add 'module' or 'week' field to group assignments
-    // TODO: use assignment.type in future to conditionally render different layouts
+// TODO: add 'module' or 'week' field to group assignments
+// TODO: use assignment.type in future to conditionally render different layouts
 
-    const [questions, setQuestions] = useState([]); // store questions
+/* ------------------------ Main Assignment Component ------------------------ */
+const Assignment = ({ assignment, userId = 'guest', onAskChat }) => {
+
+
+    /* ----- state: store fetched questions, answers, and grading results ----- */
+    const [questions, setQuestions] = useState([]); 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // track current question
-    const [answers, setAnswers] = useState({}); // store user answers
-    const [results, setResults] = useState([]); // store grading results
-    const [totalScore, setTotalScore] = useState(0); // store total score
+    const [answers, setAnswers] = useState({}); 
+    const [results, setResults] = useState([]); 
+    const [totalScore, setTotalScore] = useState(0);
+
     const [loading, setLoading] = useState(false); // track loading state
-    const [submitting, setSubmitting] = useState(false);
+    const [submitting, setSubmitting] = useState(false); // track submitting state
     const [error, setError] = useState(""); // store error messages
 
-    // fetch assignment questions from backend
+    /* ------------------------ Fetch assignment questions ------------------------ */
     useEffect(() => {
         if (assignment) {
             fetchQuestions(assignment.assignment_id);
         }
     }, [assignment]);
 
-    // fetch questions by assignment ID
+    /* ------------------------ Fetch any previous results ------------------------ */
+    useEffect(() => {
+        if (assignment && userId) {
+            fetchPreviousResults(assignment.assignment_id, userId);
+        }
+    }, [assignment, userId]);
+
+    /* ------------------------ API call to load questions ------------------------ */
     const fetchQuestions = async (assignmentId) => {
         setLoading(true);
         setError("");
@@ -39,29 +59,45 @@ const Assignment = ({ assignment, onBack, userId = 'guest', onAskChat }) => {
         }
     };
 
-    // handle user answer input
+    /* ------------------------ API call to load past results ------------------------ */
+    const fetchPreviousResults = async (assignmentId, userId) => {
+        try {
+          const res = await fetch(`http://localhost:5000/api/assignments/${assignmentId}/results?user_id=${userId}`);
+          const data = await res.json();
+      
+          if (res.ok && data.results && data.results.length > 0) {
+            setResults(data.results);
+            setTotalScore(data.total_score);
+          } else {
+            // Don't do anything — assume user hasn't completed the assignment
+            setResults([]); // ensure we clear old results
+          }
+        } catch (err) {
+          console.error('Failed to fetch previous results:', err);
+        }
+      };
+
+    /* ------------------------ Handle answer change ------------------------ */
     const handleAnswerChange = (questionId, value) => {
         setAnswers({ ...answers, [questionId]: value });
     };
 
-    // navigate to previous question
+    /* ------------------------ Question Navigation: Prev / Next ------------------------ */
     const handlePrevious = () => {
         if (currentQuestionIndex > 0) {
             setCurrentQuestionIndex(currentQuestionIndex - 1);
         }
     };
-
-    // navigate to next question
     const handleNext = () => {
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         }
     };
 
-    // check if all questions are answered
+    /* ------------------------ Check if all questions answered ------------------------ */
     const allAnswered = questions.every((q) => answers[q.question_id]);
 
-    // ---------- Submit Assignment and Trigger Grading ----------
+    /* ------------------------ Submit assignment for grading ------------------------ */
     const handleSubmitAssignment = async () => {
         setSubmitting(true); // show spinner
 
@@ -94,7 +130,7 @@ const Assignment = ({ assignment, onBack, userId = 'guest', onAskChat }) => {
         }
     };
 
-    // ---------- Build AI Explanation Prompt for Chat ----------
+    /* ------------------------ Build AI prompt and send to Chat ------------------------ */
     const handleAskChat = (question, res) => {
         const isText = question?.question_type === 'text';
         const isMultipleChoice = question?.question_type === 'multiple_choice';
@@ -139,7 +175,7 @@ const Assignment = ({ assignment, onBack, userId = 'guest', onAskChat }) => {
       
       
 
-    // -------------------- render: question index buttons --------------------
+    /* ------------------------ Render: Question Index Buttons ------------------------ */
     const renderQuestionIndex = () => (
         <div className="assignment-container question-index">
             {questions.map((_, index) => {
@@ -162,184 +198,202 @@ const Assignment = ({ assignment, onBack, userId = 'guest', onAskChat }) => {
     );
 
 
-// -------------------- helper: determine if question is unlocked --------------------
-const isQuestionAccessible = (index) => {
-    // a question is accessible if it's before or at the current question index
-    // or it has already been answered
-    return index <= currentQuestionIndex || answers[questions[index]?.question_id];
-};
+    /* ------------------------ Determine if question is unlocked ------------------------ */
+    const isQuestionAccessible = (index) => {
+        return index <= currentQuestionIndex || answers[questions[index]?.question_id];
+    };
 
 
-// render current question with consistent sizing
-const renderQuestion = () => {
-    const currentQuestion = questions[currentQuestionIndex]; // get current question
+/* ------------------------ Render: Current Question View ------------------------ */
+    const renderQuestion = () => {
+        const currentQuestion = questions[currentQuestionIndex]; // get current question
 
-    if (!currentQuestion) return null; // return nothing if no question available
+        if (!currentQuestion) return null; // return nothing if no question available
 
-    return (
-        <div className="question-display">
-            {/* question text */}
-            <div className="question-text">
-                <strong>Q{currentQuestionIndex + 1}: {currentQuestion.question_text}</strong>
+        return (
+            <div className="question-display">
+
+                {/* question text */}
+                <div className="question-text">
+                    <strong>Q{currentQuestionIndex + 1}: {currentQuestion.question_text}</strong>
+                </div>
+
+                {/* answer section */}
+                <div className="answer-container">
+
+                    {/* multiple choice options */}
+                    {currentQuestion.question_type === 'multiple_choice' && currentQuestion.options && (
+                        currentQuestion.options.choices.map((choice, index) => (
+                            <label key={index} className="answer-option">
+                                <input
+                                    type="radio"
+                                    name={`question-${currentQuestion.question_id}`}
+                                    value={choice}
+                                    checked={answers[currentQuestion.question_id] === choice}
+                                    onChange={(e) => handleAnswerChange(currentQuestion.question_id, e.target.value)}
+                                />
+                                {choice}
+                            </label>
+                        ))
+                    )}
+
+                    {/* text-based answer */}
+                    {currentQuestion.question_type === 'text' && (
+                        <textarea
+                            className="answer-textarea"
+                            value={answers[currentQuestion.question_id] || ''}
+                            onChange={(e) => handleAnswerChange(currentQuestion.question_id, e.target.value)}
+                            placeholder="write your answer here..."
+                        />
+                    )}
+
+                    {/* true/false questions (as radio buttons) */}
+                    {currentQuestion.question_type === 'true_false' && (
+                        ['True', 'False'].map((option, index) => (
+                            <label key={index} className="answer-option">
+                                <input
+                                    type="radio"
+                                    name={`question-${currentQuestion.question_id}`}
+                                    value={option}
+                                    checked={answers[currentQuestion.question_id] === option}
+                                    onChange={(e) => handleAnswerChange(currentQuestion.question_id, e.target.value)}
+                                />
+                                {option}
+                            </label>
+                        ))
+                    )}
+                </div>
             </div>
+        );
+    };
 
-            {/* answer section */}
-            <div className="answer-container">
-                {/* multiple choice options */}
-                {currentQuestion.question_type === 'multiple_choice' && currentQuestion.options && (
-                    currentQuestion.options.choices.map((choice, index) => (
-                        <label key={index} className="answer-option">
-                            <input
-                                type="radio"
-                                name={`question-${currentQuestion.question_id}`}
-                                value={choice}
-                                checked={answers[currentQuestion.question_id] === choice}
-                                onChange={(e) => handleAnswerChange(currentQuestion.question_id, e.target.value)}
-                            />
-                            {choice}
-                        </label>
-                    ))
-                )}
 
-                {/* text-based answer */}
-                {currentQuestion.question_type === 'text' && (
-                    <textarea
-                        className="answer-textarea"
-                        value={answers[currentQuestion.question_id] || ''}
-                        onChange={(e) => handleAnswerChange(currentQuestion.question_id, e.target.value)}
-                        placeholder="write your answer here..."
-                    />
-                )}
+    /* ------------------------ Render: Assignment Results ------------------------ */
+    const renderResults = () => (
+        <div className="results-section">
+            <h4>Assignment Results</h4>
 
-                {/* true/false questions (as radio buttons) */}
-                {currentQuestion.question_type === 'true_false' && (
-                    ['True', 'False'].map((option, index) => (
-                        <label key={index} className="answer-option">
-                            <input
-                                type="radio"
-                                name={`question-${currentQuestion.question_id}`}
-                                value={option}
-                                checked={answers[currentQuestion.question_id] === option}
-                                onChange={(e) => handleAnswerChange(currentQuestion.question_id, e.target.value)}
-                            />
-                            {option}
-                        </label>
-                    ))
-                )}
-            </div>
+            {results.map((res, index) => {
+                const question = questions.find(q => String(q.question_id) === String(res.question_id));
+                const isTextQuestion = question?.question_type === 'text';
+
+                return (
+                    <div key={res.question_id} className="result-item">
+
+                        {/* Question Header with Points */}
+                        <div className="result-header d-flex justify-content-between align-items-center">
+                            <strong>Q{index + 1}: {question?.question_text || 'Question not found'}</strong>
+                            <span className="points-earned">{res.points_awarded}/{res.max_points} points</span>
+                        </div>
+
+                        {/* Multiple Choice Answer Display */}
+                        {question?.question_type === 'multiple_choice' && question?.options?.choices && (
+                            <ul className="answer-options">
+                                {question.options.choices.map((choice, i) => (
+                                    <li
+                                        key={i}
+                                        style={{ color: choice === res.correct_answer ? 'green' : 'black' }}
+                                    >
+                                        {choice}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
+                        <hr />
+
+                        {/* Display User's Answer with Conditional Styling */}
+                        <p style={{
+                            color:
+                                isTextQuestion && res.points_awarded > 0 && res.points_awarded < res.max_points ? 'orange' :
+                                res.correct ? 'green' :
+                                'red'
+                        }}>
+
+                            <strong>Your Answer:</strong> {res.user_answer || 'No answer provided'}
+                        </p>
+
+                        {/* Feedback for Text-Based (AI-Graded) Questions */}
+                        {isTextQuestion && res.points_awarded > 0 && res.points_awarded < res.max_points && (
+                            <p style={{ color: 'orange' }}>
+                                <em>Partially correct — your answer matched some key concepts.</em>
+                            </p>
+                        )}
+
+                        {/* Show Correct Answer if incorrect */}
+                        {!res.correct && (
+                            <p style={{ color: 'green' }}>
+                                <strong>Correct Answer:</strong>{' '}
+                                {Array.isArray(res.correct_answer)
+                                    ? res.correct_answer.join(', ')
+                                    : res.correct_answer}
+                            </p>
+                        )}
+
+                        {/* Ask Chat for Explanation */}
+                        <div className='explanation-button-container'>
+                            <Button
+                                variant="outline-primary"
+                                size="sm"
+                                className="explanation-button"
+                                onClick={() => handleAskChat(question, res)}
+                            >
+                                Explanation
+                            </Button>
+                        </div>
+                    </div>
+                );
+            })}
+
+            {/* Total Score at the Bottom */}
+            <h5>Total Score: {totalScore}/{results.reduce((acc, res) => acc + (res.max_points || 0), 0)}</h5>
         </div>
     );
-};
 
-
-// render assignment results with question details and points display
-const renderResults = () => (
-    <div className="results-section">
-        <h4>Assignment Results</h4>
-
-        {results.map((res, index) => {
-            const question = questions.find(q => String(q.question_id) === String(res.question_id));
-            const isTextQuestion = question?.question_type === 'text';
-
-            return (
-                <div key={res.question_id} className="result-item">
-                    {/* Question Header with Points */}
-                    <div className="result-header d-flex justify-content-between align-items-center">
-                        <strong>Q{index + 1}: {question?.question_text || 'Question not found'}</strong>
-                        <span className="points-earned">{res.points_awarded}/{res.max_points} points</span>
-                    </div>
-
-                    {/* Multiple Choice Answer Display */}
-                    {question?.question_type === 'multiple_choice' && question?.options?.choices && (
-                        <ul className="answer-options">
-                            {question.options.choices.map((choice, i) => (
-                                <li
-                                    key={i}
-                                    style={{ color: choice === res.correct_answer ? 'green' : 'black' }}
-                                >
-                                    {choice}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-
-                    <hr />
-
-                    {/* Display User's Answer with Conditional Styling */}
-                    <p style={{
-                        color:
-                            isTextQuestion && res.points_awarded > 0 && res.points_awarded < res.max_points ? 'orange' :
-                            res.correct ? 'green' :
-                            'red'
-                    }}>
-
-                        <strong>Your Answer:</strong> {res.user_answer || 'No answer provided'}
-                    </p>
-
-                    {/* Feedback for Text-Based (AI-Graded) Questions */}
-                    {isTextQuestion && res.points_awarded > 0 && res.points_awarded < res.max_points && (
-                        <p style={{ color: 'orange' }}>
-                            <em>Partially correct — your answer matched some key concepts.</em>
-                        </p>
-                    )}
-
-                    {/* Show Correct Answer if incorrect */}
-                    {!res.correct && (
-                        <p style={{ color: 'green' }}>
-                            <strong>Correct Answer:</strong>{' '}
-                            {Array.isArray(res.correct_answer)
-                                ? res.correct_answer.join(', ')
-                                : res.correct_answer}
-                        </p>
-                    )}
-
-                    {/* Ask Chat for Explanation */}
-                    <div className='explanation-button-container'>
-                        <Button
-                            variant="outline-primary"
-                            size="sm"
-                            className="explanation-button"
-                            onClick={() => handleAskChat(question, res)}
-                        >
-                            Explanation
-                        </Button>
-                    </div>
-                </div>
-            );
-        })}
-
-        {/* Total Score at the Bottom */}
-        <h5>Total Score: {totalScore}/{results.reduce((acc, res) => acc + (res.max_points || 0), 0)}</h5>
-    </div>
-);
-
+    /* ------------------------ Component Render ------------------------ */
     return (
         <div className="assignment-container">
             <Card className="mt-4">
+                {/* ------------------ Card Header: Assignment Title ------------------ */}
                 <Card.Header className="d-flex justify-content-between align-items-center">
                     <h4 className="m-0">{assignment.assignment_title}</h4>
-                    <Button variant="outline-danger" onClick={onBack}>Back to assignments</Button>
                 </Card.Header>
 
+                {/* ------------------ Card Body: Assignment Content ------------------ */}
                 <Card.Body>
+
+                {/* CASE 1: Loading state while fetching questions */}
                     {loading && questions.length === 0 ? (
                         <Spinner animation="border" />
+                    
+                /*  CASE 2: Error fetching questions  */
                     ) : error ? (
                         <Alert variant="danger">{error}</Alert>
+
+                /*  CASE 3: Results already exist (assignment previously submitted)  */
                     ) : results.length > 0 ? (
-                        renderResults()
+                        <>
+                        <Alert variant="info">
+                          You’ve already submitted this assignment. Here are your results:
+                        </Alert>
+
+                        {/* render assignment results including points and feedback */}
+                        {renderResults()}
+                      </>
+
+                /*  CASE 4: Active assignment in progress  */
                     ) : (
                         <>
                             {renderQuestionIndex()} {/* question navigation */}
                             {renderQuestion()} {/* current question display */}
 
-                            {/* navigation buttons */}
+                            {/* ------------------ Question Navigation Buttons ------------------ */}
                             <div className="assignment-navigation-buttons mt-3">
                                 <Button
                                     className="prev-button"
                                     variant="secondary"
                                     onClick={handlePrevious}
-                                    disabled={currentQuestionIndex === 0}
+                                    disabled={currentQuestionIndex === 0} // disable if on first question
                                 >
                                     Previous
                                 </Button>
@@ -356,16 +410,17 @@ const renderResults = () => (
                                 </Button>
                             </div>
 
-                            {/* submit button when all questions are answered */}
-                            {allAnswered && (
+                            {/* ------------------ Submit Button (when all answered) ------------------ */}
+                            {questions.length > 0 && allAnswered && (
                                 <Button
                                     className="submit-assignment-button"
                                     variant="success"
                                     onClick={handleSubmitAssignment}
-                                    disabled={submitting}
+                                    disabled={submitting} // disable while waiting on submission response
                                 >
                                     {submitting ? (
                                     <>
+                                        {/* show spinner while grading */}
                                         <Spinner
                                         as="span"
                                         animation="border"
@@ -377,7 +432,7 @@ const renderResults = () => (
                                         Grading...
                                     </>
                                     ) : (
-                                    "Submit"
+                                    "Submit" // static label when not submitting
                                     )}
                                 </Button>
                             )}

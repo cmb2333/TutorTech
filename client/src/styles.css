@@ -292,17 +292,7 @@ body {
 }
 
 
-/* ---------------------------- Course Page ---------------------------- */
-.course-page {
-  flex: 1;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 20px;
-  box-sizing: border-box;
-  position: relative;
-}
-
+/* ---------------------------- Courses Page ---------------------------- */
 .courses-page h2 {
   margin-top: 50px;
   margin-bottom: 40px;
@@ -310,16 +300,6 @@ body {
   font-weight: bold;
   color: black;
   text-align: center;
-}
-
-.course-info {
-  flex: 2;
-  overflow: auto;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  min-width: 200px;
 }
 
 .courses-page .course-card {
@@ -344,22 +324,6 @@ body {
   height: 180px; 
   object-fit: cover; 
 }
-/* ------------------------ Lectures ---------------------------- */
-/* lecture video container with responsive aspect ratio */
-.lecture-item .lecture-video-container {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9; /* maintains 16:9 aspect ratio */
-  overflow: hidden;
-}
-
-/* responsive iframe styling */
-.lecture-item .lecture-video-container .responsive-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
 
 /* ------------------------ Assignments ---------------------------- */
 .assignment-list {
@@ -583,39 +547,6 @@ body {
 }
 
 /* ------------------------ AI Chat ---------------------------- */
-.bot-section {
-  position: sticky;
-  top: 0;
-  width: 400px;
-  overflow-y: auto;
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  box-sizing: border-box;
-  transition: max-height 0.2s ease-in-out;
-}
-
-/* Bot type label + selector */
-.bot-label {
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
-  width: 100%;
-}
-
-.bot-type-selector {
-  width: 100%;
-  padding: 8px;
-  font-size: 16px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-}
-
 /* Main chat container */
 .ai-chat {
   display: flex;

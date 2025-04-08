@@ -1,0 +1,22 @@
+.main-content-prev-button,
+.main-content-next-button {
+  min-width: 20px;
+  font-weight: 500;
+  font-size: .7rem;
+  transition: all 0.2s ease-in-out;
+  border-radius: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  white-space: nowrap;
+  padding: 1px 1px;
+  color: var(--primary-color);
+  border: 0;
+}
+
+.main-content-prev-button:hover,
+.main-content-next-button:hover {
+    color: var(--secondary-color);
+}
