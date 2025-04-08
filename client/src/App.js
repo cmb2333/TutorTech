@@ -9,7 +9,7 @@ import Login from './components/Login';
 import Chat from './components/Chat';
 import Courses from './components/Courses';
 import Signup from './components/Signup';
-import { CoursePage } from './components/course';
+import CoursePage from './components/CoursePage';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import Contact from './components/Contact';
