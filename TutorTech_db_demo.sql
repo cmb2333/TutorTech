@@ -16,42 +16,49 @@ CREATE TABLE IF NOT EXISTS course_information
 	course_description TEXT
 );
 
+-- ---------------- Course Modules Table ----------------
+CREATE TABLE course_modules (
+    id SERIAL PRIMARY KEY,                       -- globally unique module id
+    course_code VARCHAR(10) NOT NULL,            -- course it belongs to
+    module_sequence INT NOT NULL,                -- 1, 2, 3... within a course
+    module_title VARCHAR(100) NOT NULL,          -- e.g., "Module 1"
+    module_description TEXT,                     -- description
+    
+    CONSTRAINT uq_course_module UNIQUE (course_code, module_sequence),
+    CONSTRAINT fk_course FOREIGN KEY (course_code)
+        REFERENCES course_information (course_code)
+        ON DELETE CASCADE
+);
+
 -- Table: course_lectures
 DROP TABLE IF EXISTS course_lectures;
-CREATE TABLE IF NOT EXISTS course_lectures
-(
-	-- lecture id
-	lecture_id VARCHAR(10) NOT NULL PRIMARY KEY,
-	-- course_code
-	course_code VARCHAR(10) NOT NULL,
-	-- lecture title
-	lecture_title VARCHAR(100) NOT NULL,
-	-- video link of lectures
-	video_link VARCHAR(100) NOT NULL,
-	-- foreign key constraint
-	CONSTRAINT course_code FOREIGN KEY (course_code)
-		REFERENCES course_information (course_code)
+CREATE TABLE IF NOT EXISTS course_lectures (
+    lecture_id VARCHAR(10) NOT NULL PRIMARY KEY,
+    module_id INT NOT NULL,
+    lecture_title VARCHAR(100) NOT NULL,
+    video_link VARCHAR(100) NOT NULL,
+
+    -- foreign key constraint
+    CONSTRAINT fk_lecture_module FOREIGN KEY (module_id)
+        REFERENCES course_modules (module_id)
+        ON DELETE CASCADE
 );
+
 
 -- Table: course_assignments
 DROP TABLE IF EXISTS course_assignments;
-CREATE TABLE IF NOT EXISTS course_assignments
-(
-    -- assignment id
-	assignment_id VARCHAR(10) NOT NULL PRIMARY KEY,
-	-- course code
-	course_code VARCHAR(10) NOT NULL,
-	-- assignment title
-	assignment_title VARCHAR(100) NOT NULL,
-	-- max score
-	max_score INT NOT NULL,
-	-- foreign key constraint
-	CONSTRAINT course_code FOREIGN KEY (course_code)
-		REFERENCES course_information (course_code)
+CREATE TABLE IF NOT EXISTS course_assignments (
+    assignment_id VARCHAR(10) NOT NULL PRIMARY KEY,
+    module_id INT NOT NULL,
+    assignment_title VARCHAR(100) NOT NULL,
+    max_score INT NOT NULL,
 
-		-- future field: type (VARCHAR) to support assignment categories (quiz, exam, homework)
-
+    -- foreign key constraint
+    CONSTRAINT fk_assignment_module FOREIGN KEY (module_id)
+        REFERENCES course_modules (module_id)
+        ON DELETE CASCADE
 );
+
 
 -- Table: assignment_questions
 CREATE TABLE IF NOT EXISTS assignment_questions
@@ -110,6 +117,21 @@ CREATE TABLE IF NOT EXISTS grades (
     FOREIGN KEY (course_code) REFERENCES course_information(course_code) ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS assignment_results;
+CREATE TABLE IF NOT EXISTS assignment_results (
+    user_id VARCHAR(50) NOT NULL,
+    assignment_id VARCHAR(10) NOT NULL,
+    question_id INT NOT NULL,
+    user_answer TEXT,
+    points_awarded INT,
+    max_points INT,
+    correct BOOLEAN,
+    correct_answer JSONB,
+    PRIMARY KEY (user_id, assignment_id, question_id),
+    FOREIGN KEY (user_id) REFERENCES student_information(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (assignment_id) REFERENCES course_assignments(assignment_id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES assignment_questions(question_id) ON DELETE CASCADE
+);
 
 
 
@@ -141,45 +163,51 @@ INSERT INTO course_information (course_code, course_title, credits, course_descr
 
 -------------------------------------------------------------------------------------------------------------
 
+-- course_modules MOCK DATA inserts ------------------------------------------------------------------------
+INSERT INTO course_modules (course_code, module_title, module_description, module_sequence)
+VALUES 
+  ('EE499', 'Introduction', 'Introductory module for EE499', 1),
+  ('EE599', 'Introduction', 'Introductory module for EE599', 1),
+  ('PHY530', 'Introduction', 'Introductory module for PHY530', 1),
+  ('DOE', 'Introduction', 'Introductory module for DOE', 1),
+  ('EGRFE', 'Introduction', 'Introductory module for EGRFE', 1),
+  ('SPC', 'Introduction', 'Introductory module for SPC', 1);
+-------------------------------------------------------------------------------------------------------------
+
 -- course_lectures MOCK DATA inserts ------------------------------------------------------------------------
-INSERT INTO course_lectures(lecture_id, course_code, lecture_title, video_link)
-	VALUES ('LEC01', 'EE499', 'EE499 - Lecture', 'https://youtu.be/1mqXu3eXylI');
 
-INSERT INTO course_lectures(lecture_id, course_code, lecture_title, video_link)
-	VALUES ('LEC02', 'EE599', 'EE599 - Lecture', 'https://youtu.be/0N9fVpQmDCQ');
+-- ---------------- course_lectures MOCK DATA inserts (module_id = 1) ----------------
+INSERT INTO course_lectures(lecture_id, module_id, lecture_title, video_link)
+VALUES
+  ('LEC01', 1, 'Getting Started', 'https://youtu.be/1mqXu3eXylI'),
+  ('LEC02', 2, 'Getting Started', 'https://youtu.be/0N9fVpQmDCQ'),
+  ('LEC03', 3, 'Getting Started', 'https://youtu.be/ifxaJ3lZ-yc'),
+  ('LEC04', 4, 'Getting Started', 'https://youtu.be/2bKGmQCDBtQ'),
+  ('LEC05', 5, 'Getting Started', 'https://youtu.be/azFrptUJOlI'),
+  ('LEC06', 6, 'Getting Started', 'https://youtu.be/B9h5_eVaGXM');
 
-INSERT INTO course_lectures(lecture_id, course_code, lecture_title, video_link)
-	VALUES ('LEC03', 'PHY530', 'PHY530 - Lecture', 'https://youtu.be/ifxaJ3lZ-yc');
 
-INSERT INTO course_lectures(lecture_id, course_code, lecture_title, video_link)
-	VALUES ('LEC04', 'DOE', 'DOE - Lecture', 'https://youtu.be/2bKGmQCDBtQ');
-
-INSERT INTO course_lectures(lecture_id, course_code, lecture_title, video_link)
-	VALUES ('LEC05', 'EGRFE', 'EGRFE - Lecture', 'https://youtu.be/azFrptUJOlI');
-
-INSERT INTO course_lectures(lecture_id, course_code, lecture_title, video_link)
-	VALUES ('LEC06', 'SPC', 'SPC - Lecture', 'https://youtu.be/B9h5_eVaGXM');
 
 -------------------------------------------------------------------------------------------------------------
 
 -- course_assignments MOCK DATA inserts ------------------------------------------------------------------------
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score)
-	VALUES ('ASGMT01', 'EE499', 'EE499 - Assignment 1', 5);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
+	VALUES ('ASGMT01', 'EE499', 'EE499 - Assignment 1', 5, 1);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score)
-	VALUES ('ASGMT02', 'EE599', 'EE599 - Assignment 1', 10);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
+	VALUES ('ASGMT02', 'EE599', 'EE599 - Assignment 1', 10, 2);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score)
-	VALUES ('ASGMT03', 'PHY530', 'PHY530 - Assignment 1', 15);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
+	VALUES ('ASGMT03', 'PHY530', 'PHY530 - Assignment 1', 15, 3);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score)
-	VALUES ('ASGMT04', 'DOE', 'DOE - Assignment 1', 20);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
+	VALUES ('ASGMT04', 'DOE', 'DOE - Assignment 1', 20, 4);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score)
-	VALUES ('ASGMT05', 'EGRFE', 'EGRFE - Assignment 1', 25);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
+	VALUES ('ASGMT05', 'EGRFE', 'EGRFE - Assignment 1', 25, 5);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score)
-	VALUES ('ASGMT06', 'SPC', 'SPC - Assignment 1', 30);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
+	VALUES ('ASGMT06', 'SPC', 'SPC - Assignment 1', 30, 6);
 
 --assignment_questions MOCK DATA inserts -------------------------------------------------------------------------------------------
 
@@ -258,47 +286,209 @@ INSERT INTO enrollments (user_id, course_code) VALUES
 -- The following section contains query statements that you can use to alter your local version of your datase --
 -- This section should be replaced when new changes to our schema are pushed to the github -- 
 
--- ALTER student_information table to add learning preferences column
-ALTER TABLE student_information ADD COLUMN learning_preferences TEXT;
 
--- ALTER assignment_questions TABLE to change correct_answer to JSONB (allows for list of keywords for free response questions)
-ALTER TABLE assignment_questions
-ALTER COLUMN correct_answer TYPE JSONB
-USING to_jsonb(correct_answer);  -- convert existing values
+-- The following scripts should be ran for the implementation of module functionality for courses  --
 
--- UPDATE assignment_questions values for free response questions to include a list  of keywords
-UPDATE assignment_questions SET correct_answer = '["accurate", "measurement"]'::jsonb
-WHERE question_text = 'What is the primary goal of metrology?';
+---------------------------- (1) CREATE COURSE MODULES TABLE  --------------------------
+DROP TABLE IF EXISTS course_modules;
 
-UPDATE assignment_questions SET correct_answer = '["traceability", "verified", "measurements"]'::jsonb
-WHERE question_text = 'Describe the importance of traceability in measurement systems.';
+CREATE TABLE course_modules (
+    id SERIAL PRIMARY KEY, -- unique identifier for joins
+    course_code VARCHAR(10) NOT NULL,
+    module_sequence INT NOT NULL,
+    module_title VARCHAR(100) NOT NULL,
+    module_description TEXT,
 
-UPDATE assignment_questions SET correct_answer = '["bandgap", "energy", "conductivity"]'::jsonb
-WHERE question_text = 'Describe how bandgap energy affects the conductivity of a semiconductor.';
+    CONSTRAINT uq_course_module UNIQUE (course_code, module_sequence),
+    CONSTRAINT fk_course FOREIGN KEY (course_code)
+        REFERENCES course_information (course_code)
+        ON DELETE CASCADE
+);
 
-UPDATE assignment_questions SET correct_answer = '["doping", "charge", "carriers"]'::jsonb
-WHERE question_text = 'Explain the role of doping in semiconductor devices.';
 
-UPDATE assignment_questions SET correct_answer = '["absorption", "energy", "emission", "release"]'::jsonb
-WHERE question_text = 'Describe the difference between absorption and emission spectra.';
+---------------------------- (2) ALTER COURSE LECTURES TABLE  --------------------------
+-- Step 1: Add new column for module_id
+ALTER TABLE course_lectures
+ADD COLUMN module_id INT;
 
-UPDATE assignment_questions SET correct_answer = '["raman", "scattering", "infrared", "absorption"]'::jsonb
-WHERE question_text = 'Explain how Raman spectroscopy differs from infrared spectroscopy.';
+-- Step 2: Drop old course_code foreign key
+ALTER TABLE course_lectures
+DROP CONSTRAINT course_code;
 
-UPDATE assignment_questions SET correct_answer = '["factorial", "combinations", "factors"]'::jsonb
-WHERE question_text = 'Explain what a factorial design is in the context of DOE.';
+-- Step 3: Drop course_code column
+ALTER TABLE course_lectures
+DROP COLUMN course_code;
 
-UPDATE assignment_questions SET correct_answer = '["replication", "reliability", "results"]'::jsonb
-WHERE question_text = 'Describe why replication is important in experimental design.';
+-- Step 4: Add new foreign key to course_modules
+ALTER TABLE course_lectures
+ADD CONSTRAINT fk_lecture_module FOREIGN KEY (module_id)
+    REFERENCES course_modules (module_id)
+    ON DELETE CASCADE;
 
-UPDATE assignment_questions SET correct_answer = '["first", "step", "professional", "licensure"]'::jsonb
-WHERE question_text = 'Explain the importance of the FE exam for aspiring engineers.';
 
-UPDATE assignment_questions SET correct_answer = '["ethics", "mathematics"]'::jsonb
-WHERE question_text = 'List two topics typically covered in the FE exam.';
+---------------------------- (3) ALTER COURSE ASSIGNMENTS TABLE  --------------------------
+-- Step 1: Add new column for module_id
+ALTER TABLE course_assignments
+ADD COLUMN module_id INT;
 
-UPDATE assignment_questions SET correct_answer = '["control", "charts", "monitor", "stability"]'::jsonb
-WHERE question_text = 'Explain how control charts are used in SPC.';
+-- Step 2: Drop old course_code foreign key
+ALTER TABLE course_assignments
+DROP CONSTRAINT course_code;
 
-UPDATE assignment_questions SET correct_answer = '["common", "cause", "natural", "special", "unusual"]'::jsonb
-WHERE question_text = 'Describe the difference between common cause and special cause variation.';
+-- Step 3: Drop course_code column
+ALTER TABLE course_assignments
+DROP COLUMN course_code;
+
+-- Step 4: Add new foreign key to course_modules
+ALTER TABLE course_assignments
+ADD CONSTRAINT fk_assignment_module FOREIGN KEY (module_id)
+    REFERENCES course_modules (module_id)
+    ON DELETE CASCADE;
+
+---------------------------- (4) INSERT MOCK DATA FOR MODULES  --------------------------
+INSERT INTO course_modules (course_code, module_title, module_description, module_sequence)
+VALUES 
+  ('EE499', 'Introduction', 'Introductory module for EE499', 1),
+  ('EE599', 'Introduction', 'Introductory module for EE599', 1),
+  ('PHY530', 'Introduction', 'Introductory module for PHY530', 1),
+  ('DOE', 'Introduction', 'Introductory module for DOE', 1),
+  ('EGRFE', 'Introduction', 'Introductory module for EGRFE', 1),
+  ('SPC', 'Introduction', 'Introductory module for SPC', 1);
+
+---------------------------- (5) UPDATE COURSE_LECTURES  --------------------------
+UPDATE course_lectures SET module_id = 1 WHERE lecture_id = 'LEC01'; -- EE499
+UPDATE course_lectures SET module_id = 2 WHERE lecture_id = 'LEC02'; -- EE599
+UPDATE course_lectures SET module_id = 3 WHERE lecture_id = 'LEC03'; -- PHY530
+UPDATE course_lectures SET module_id = 4 WHERE lecture_id = 'LEC04'; -- DOE
+UPDATE course_lectures SET module_id = 5 WHERE lecture_id = 'LEC05'; -- EGRFE
+UPDATE course_lectures SET module_id = 6 WHERE lecture_id = 'LEC06'; -- SPC
+
+---------------------------- (6) UPDATE COURSE_ASSIGNMENTS  --------------------------
+UPDATE course_assignments SET module_id = 1 WHERE assignment_id = 'ASGMT01'; -- EE499
+UPDATE course_assignments SET module_id = 2 WHERE assignment_id = 'ASGMT02'; -- EE599
+UPDATE course_assignments SET module_id = 3 WHERE assignment_id = 'ASGMT03'; -- PHY530
+UPDATE course_assignments SET module_id = 4 WHERE assignment_id = 'ASGMT04'; -- DOE
+UPDATE course_assignments SET module_id = 5 WHERE assignment_id = 'ASGMT05'; -- EGRFE
+UPDATE course_assignments SET module_id = 6 WHERE assignment_id = 'ASGMT06'; -- SPC
+
+---------------------------- (7) UPDATE COURSE_ASSIGNMENTS assignment titles  --------------------------
+UPDATE course_assignments
+SET assignment_title = 'Getting Started'
+WHERE assignment_id = 'ASGMT01';
+
+UPDATE course_assignments
+SET assignment_title = 'Getting Started'
+WHERE assignment_id = 'ASGMT02';
+
+UPDATE course_assignments
+SET assignment_title = 'Getting Started'
+WHERE assignment_id = 'ASGMT03';
+
+UPDATE course_assignments
+SET assignment_title = 'Getting Started'
+WHERE assignment_id = 'ASGMT04';
+
+UPDATE course_assignments
+SET assignment_title = 'Getting Started'
+WHERE assignment_id = 'ASGMT05';
+
+UPDATE course_assignments
+SET assignment_title = 'Getting Started'
+WHERE assignment_id = 'ASGMT06';
+
+---------------------------- (7) UPDATE COURSE_LECTURES lecture titles  --------------------------
+UPDATE course_lectures
+SET lecture_title = 'Getting Started'
+WHERE lecture_id = 'LEC01';
+
+UPDATE course_lectures
+SET lecture_title = 'Getting Started'
+WHERE lecture_id = 'LEC02';
+
+UPDATE course_lectures
+SET lecture_title = 'Getting Started'
+WHERE lecture_id = 'LEC03';
+
+UPDATE course_lectures
+SET lecture_title = 'Getting Started'
+WHERE lecture_id = 'LEC04';
+
+UPDATE course_lectures
+SET lecture_title = 'Getting Started'
+WHERE lecture_id = 'LEC05';
+
+UPDATE course_lectures
+SET lecture_title = 'Getting Started'
+WHERE lecture_id = 'LEC06';
+
+---------------------------- (8) Create Assignment Results table  --------------------------
+DROP TABLE IF EXISTS assignment_results;
+CREATE TABLE IF NOT EXISTS assignment_results (
+    user_id VARCHAR(50) NOT NULL,
+    assignment_id VARCHAR(10) NOT NULL,
+    question_id INT NOT NULL,
+    user_answer TEXT,
+    points_awarded INT,
+    max_points INT,
+    correct BOOLEAN,
+    correct_answer JSONB,
+    PRIMARY KEY (user_id, assignment_id, question_id),
+    FOREIGN KEY (user_id) REFERENCES student_information(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (assignment_id) REFERENCES course_assignments(assignment_id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES assignment_questions(question_id) ON DELETE CASCADE
+);
+
+---------------------------- (8) Create a bunch of mock modules for EE499  --------------------------
+INSERT INTO course_modules (course_code, module_sequence, module_title, module_description)
+VALUES 
+  ('EE499', 2,'The Basics', 'Advanced Topics in Mircoelectronics Metrology.');
+  ('EE499', 3, 'Measurement Systems & Calibration', 'Explore various measurement systems and calibration standards used in metrology.'),
+  ('EE499', 4, 'Uncertainty & Traceability', 'Understand the principles of uncertainty and traceability in precision measurement.'),
+  ('EE499', 5, 'Statistical Methods in Metrology', 'Apply statistical tools to analyze and validate measurement data.');
+
+---------------------------- (9) Create a bunch of mock lectures for each module  --------------------------
+-- Lectures for Module 2 (id: 7)
+INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link)
+VALUES 
+  ('LEC201', 7, 'Overview of Metrology Instruments', 'https://youtu.be/abc123'),
+  ('LEC202', 7, 'Precision Measurement Techniques', 'https://youtu.be/def456'),
+  ('LEC203', 7, 'Advanced Sensors and Automation', 'https://youtu.be/ghi789');
+
+-- Lectures for Module 3 (id: 8)
+INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link) VALUES
+  ('LEC07', 8, 'Introduction to Measurement Systems', 'https://youtu.be/dQw4w9WgXcQ'),
+  ('LEC08', 8, 'Fundamentals of Calibration', 'https://youtu.be/dQw4w9WgXcQ');
+
+-- Lectures for Module 4 (id: 9)
+INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link) VALUES
+  ('LEC09', 9, 'Understanding Measurement Uncertainty', 'https://youtu.be/dQw4w9WgXcQ'),
+  ('LEC10', 9, 'Traceability in Metrology', 'https://youtu.be/dQw4w9WgXcQ');
+
+-- Lectures for Module 5 (id: 10)
+INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link) VALUES
+  ('LEC11', 10, 'Intro to Statistical Techniques', 'https://youtu.be/dQw4w9WgXcQ'),
+  ('LEC12', 10, 'Data Validation Methods', 'https://youtu.be/dQw4w9WgXcQ');
+
+
+---------------------------- (10) Create a bunch of mock assignments for each module  --------------------------
+-- Assignments for Module 2 (id: 7)
+INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score)
+VALUES 
+  ('ASGMT201', 7, 'Measurement Fundamentals', 10),
+  ('ASGMT202', 7, 'Report: Sensor Calibration', 15),
+  ('ASGMT203', 7, 'Future of Metrology', 20);
+
+-- Assignments for Module 3 (id: 8)
+INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score) VALUES
+  ('ASGMT07', 8, 'Measurement Device Report', 10),
+  ('ASGMT08', 8, 'Calibration Lab Exercise', 15);
+
+-- Assignments for Module 4 (id: 9)
+INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score) VALUES
+  ('ASGMT09', 9, 'Uncertainty Analysis Worksheet', 10),
+  ('ASGMT10', 9, 'Traceability Case Study', 15);
+
+-- Assignments for Module 5 (id: 10)
+INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score) VALUES
+  ('ASGMT11', 10, 'Data Set Analysis', 15),
+  ('ASGMT12', 10, 'Statistical Report', 20);

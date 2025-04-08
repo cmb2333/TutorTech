@@ -323,9 +323,9 @@ def get_course(course_id):
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Fetch course by course_id
+        # Fetch course info
         cursor.execute(
-            "SELECT course_code, course_title, credits FROM course_information WHERE course_code = %s",
+            "SELECT course_code, course_title, credits, course_description FROM course_information WHERE course_code = %s",
             (course_id,)
         )
         course = cursor.fetchone()
@@ -333,34 +333,33 @@ def get_course(course_id):
         if not course:
             return jsonify({"message": "Course not found"}), 404
 
-        # Fetch lectures
-        cursor.execute(
-            """
-            SELECT lecture_id, lecture_title, video_link
-            FROM course_lectures WHERE course_code = %s
-            """,
-            (course_id,)
-        )
+        # Fetch lectures via JOIN with course_modules
+        cursor.execute("""
+            SELECT l.lecture_id, l.lecture_title, l.video_link
+            FROM course_lectures l
+            JOIN course_modules m ON l.module_id = m.id
+            WHERE m.course_code = %s
+        """, (course_id,))
         lectures = cursor.fetchall()
 
-        # Fetch assignments
-        cursor.execute(
-            """
-            SELECT assignment_id, assignment_title, max_score
-            FROM course_assignments WHERE course_code = %s
-            """,
-            (course_id,)
-        )
+        # Fetch assignments via JOIN with course_modules
+        cursor.execute("""
+            SELECT a.assignment_id, a.assignment_title, a.max_score
+            FROM course_assignments a
+            JOIN course_modules m ON a.module_id = m.id
+            WHERE m.course_code = %s
+        """, (course_id,))
         assignments = cursor.fetchall()
 
-        # Return course data as JSON
         return jsonify({
             "course_code": course["course_code"],
             "course_title": course["course_title"],
             "credits": course["credits"],
+            "course_description": course["course_description"],
             "lectures": lectures,
             "assignments": assignments
         }), 200
+
 
     except Exception as e:
         print(f"Error fetching course: {e}")
@@ -369,6 +368,113 @@ def get_course(course_id):
     finally:
         if conn:
             conn.close()
+
+
+
+
+# --------------------------- Get Course Modules ---------------------------
+# Route: /courses/<course_code>/modules
+# Method: GET
+# Purpose:
+#   - Fetch all modules for a given course using its course_code
+#   - Returns a list of module metadata (id, title, sequence, description)
+# -------------------------------------------------------------------------
+@app.route('/courses/<course_code>/modules', methods=['GET'])
+def get_modules(course_code):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # execute SQL to get all modules for this course, ordered by sequence
+        cursor.execute("""
+            SELECT id, course_code, module_sequence, module_title, module_description
+            FROM course_modules
+            WHERE course_code = %s
+            ORDER BY module_sequence
+        """, (course_code,))
+        modules = cursor.fetchall()        # retrieve query results
+
+        return jsonify(modules), 200       # return modules as JSON with 200 OK
+
+    except Exception as e:
+        print(f"Error fetching modules: {e}")
+        return jsonify({'message': 'Server error'}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
+
+
+# ------------------------- Get Lectures for Module -------------------------
+# Route: /modules/<module_id>/lectures
+# Method: GET
+# Purpose:
+#   - Retrieve all lecture items for a given module ID
+#   - Each lecture includes its title and YouTube video link
+# --------------------------------------------------------------------------
+@app.route('/modules/<int:module_id>/lectures', methods=['GET'])
+def get_module_lectures(module_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # execute SQL to select all lectures for the given module
+        cursor.execute("""
+            SELECT lecture_id, lecture_title, video_link
+            FROM course_lectures
+            WHERE module_id = %s
+            ORDER BY lecture_id
+        """, (module_id,))
+        lectures = cursor.fetchall()
+
+        return jsonify(lectures), 200
+
+    except Exception as e:
+        print(f"Error fetching module lectures: {e}")
+        return jsonify({'message': 'Server error'}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
+
+
+# ---------------------- Get Assignments for Module -----------------------
+# Route: /modules/<module_id>/assignments
+# Method: GET
+# Purpose:
+#   - Return all assignments for a specific module
+#   - Each assignment includes its title and max score
+# ------------------------------------------------------------------------
+@app.route('/modules/<int:module_id>/assignments', methods=['GET'])
+def get_module_assignments(module_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # execute SQL to select all assignments for the module
+        cursor.execute("""
+            SELECT assignment_id, assignment_title, max_score
+            FROM course_assignments
+            WHERE module_id = %s
+            ORDER BY assignment_id
+        """, (module_id,))
+        assignments = cursor.fetchall()
+
+        return jsonify(assignments), 200
+
+    except Exception as e:
+        print(f"Error fetching module assignments: {e}")
+        return jsonify({'message': 'Server error'}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
 
 # ------------------------- AI Chat -------------------------------------- 
 @app.route('/api/chat', methods=['POST', 'OPTIONS'])
@@ -583,21 +689,26 @@ def get_enrolled_courses(user_id):
             conn.close()
 
 
-# ------------------------- Assignments -------------------------------------- 
-# Fetch questions for an assignment, including correct answers
+# ----------------------------- Get Assignment Questions -----------------------------
+# Route: /api/assignments/<assignment_id>/questions
+# Method: GET
+# Purpose:
+#   - Retrieve all questions for a specific assignment
+#   - Includes correct answers and options for each question
+# -----------------------------------------------------------------------------------
 @app.route('/api/assignments/<assignment_id>/questions', methods=['GET'])
 def get_assignment_questions(assignment_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # Fetch assignment questions with correct answers
+        # fetch all questions for the assignment (with grading fields)
         cur.execute("""
             SELECT question_id, question_text, question_type, options, correct_answer, max_points
             FROM assignment_questions
             WHERE assignment_id = %s
         """, (assignment_id,))
-        questions = cur.fetchall()
+        questions = cur.fetchall()        # return as list of tuples
 
         cur.close()
         conn.close()
@@ -607,13 +718,19 @@ def get_assignment_questions(assignment_id):
         print(f"Error fetching questions: {e}")
         return jsonify({"error": "Failed to fetch questions"}), 500
 
-# Function for evaluating free response questions
+# ------------------------ AI Evaluation: Free Response Grading ------------------------
+# Function: evaluate_text_response_with_openai
+# Purpose:
+#   - Send user's text response to GPT model for evaluation
+#   - Prompt includes key concepts (keywords) and grading rubric
+#   - Extracts score from last line of model response
+# --------------------------------------------------------------------------------------
 def evaluate_text_response_with_openai(user_answer, keyword_list, max_points, question_text):
     try:
-        max_points = max_points or 1
-        keyword_str = ', '.join(keyword_list)
+        max_points = max_points or 1               # fallback to 1 point if missing
+        keyword_str = ', '.join(keyword_list)      # format keywords for prompt
 
-        # --- Prompt to Chatgpt ---
+        # build grading prompt to send to OpenAI GPT-4o
         prompt = f"""
 You are an education grading assistant. Your job is to grade short free-response student answers based on how well they address the key concepts of a specific question.
 
@@ -641,6 +758,7 @@ INSTRUCTIONS:
         print(prompt.strip())
         print("---------------------------------------------------")
 
+        # call OpenAI chat API with prompt
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
@@ -654,32 +772,41 @@ INSTRUCTIONS:
         print(full_response)
         print("---------------------------------------------------")
 
-        # Extract last line (score)
+        # extract final numeric score from response
         lines = full_response.splitlines()
         raw_score = lines[-1].strip()
         score = float(raw_score)
 
-        return max(0, min(score, max_points))  # safety bound
+        return max(0, min(score, max_points))  # bound to [0, max]
 
     except Exception as e:
         print(f"AI grading error: {e}")
         return 0
 
 
-# Grade user answers and calculate scores
+# ----------------------------- Submit Assignment Answers -----------------------------
+# Route: /api/assignments/<assignment_id>/submit
+# Method: POST
+# Purpose:
+#   - Grade submitted answers
+#   - Store total score in grades table
+#   - Store per-question results in assignment_results
+#   - Use OpenAI for grading free response (text) questions
+# -------------------------------------------------------------------------------------
 @app.route('/api/assignments/<assignment_id>/submit', methods=['POST'])
 def submit_assignment(assignment_id):
+    # extract POSTed JSON values
     user_id = request.json.get('user_id')
     course_code = request.json.get('course_code')
     user_answers = request.json.get('answers', {})  # user answers submitted
-    results = []
+    results = [] # collect per-question grading output
 
     try:
         conn = get_db_connection()
         if not conn:
             raise Exception("Failed to get database connection")
 
-        # fetch questions from DB
+        # fetch assignment questions
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
                 SELECT question_id, question_text, question_type, options, correct_answer, max_points
@@ -688,7 +815,7 @@ def submit_assignment(assignment_id):
             """, (assignment_id,))
             questions = cur.fetchall()
 
-        # process each question
+        # grade each question individually
         for question in questions:
             q_id = str(question['question_id'])
             user_answer = user_answers.get(q_id)
@@ -705,13 +832,13 @@ def submit_assignment(assignment_id):
                     max_points,
                     question['question_text']
                 )
-                is_correct = points_awarded > 0
+                is_correct = points_awarded > 0 # partial credit allowed
             else:
                 # normal comparison for multiple_choice, true_false
                 points_awarded = max_points if user_answer == correct_answer else 0
                 is_correct = user_answer == correct_answer
 
-            # append results
+            # append result for question
             results.append({
                 "question_id": q_id,
                 "question_text": question['question_text'],
@@ -726,23 +853,45 @@ def submit_assignment(assignment_id):
         total_score = sum(res['points_awarded'] for res in results)
         total_possible = sum(res['max_points'] for res in results)
 
-        # insert/update grade in the grades table
-        try:
-            with conn.cursor() as cur:
+        # ---------- Save Overall Score to grades ----------
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO grades (user_id, assignment_id, course_code, score, max_score)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (user_id, assignment_id)
+                DO UPDATE SET score = EXCLUDED.score, max_score = EXCLUDED.max_score;
+            """, (user_id, assignment_id, course_code, total_score, total_possible))
+
+        # ---------- Save Per-Question Results ----------
+        with conn.cursor() as cur:
+            for res in results:
                 cur.execute("""
-                    INSERT INTO grades (user_id, assignment_id, course_code, score, max_score)
-                    VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (user_id, assignment_id) 
-                    DO UPDATE SET score = EXCLUDED.score, max_score = EXCLUDED.max_score;
-                """, (user_id, assignment_id, course_code, total_score, total_possible))
-                conn.commit()
+                    INSERT INTO assignment_results (
+                        user_id, assignment_id, question_id, user_answer,
+                        points_awarded, max_points, correct, correct_answer
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (user_id, assignment_id, question_id)
+                    DO UPDATE SET
+                        user_answer = EXCLUDED.user_answer,
+                        points_awarded = EXCLUDED.points_awarded,
+                        max_points = EXCLUDED.max_points,
+                        correct = EXCLUDED.correct,
+                        correct_answer = EXCLUDED.correct_answer;
+                """, (
+                    user_id,
+                    assignment_id,
+                    res["question_id"],
+                    res["user_answer"],
+                    res["points_awarded"],
+                    res["max_points"],
+                    res["correct"],
+                    json.dumps(res["correct_answer"])
+                ))
 
-        except Exception as e:
-            print(f"Error saving grade: {e}")
-            return jsonify({"error": "Failed to save grade"}), 500
-
-        # return grading results
-        return jsonify({"results": results, "total_score": total_score})
+        # Commit all changes
+        conn.commit()
+        return jsonify({"results": results, "total_score": total_score}), 200
 
     except Exception as e:
         print(f"Error during assignment submission: {e}")
@@ -752,7 +901,49 @@ def submit_assignment(assignment_id):
         if conn:
             conn.close()
 
-# Grade submission
+
+
+
+# -------------------------- Get Assignment Results for User --------------------------
+# Route: /api/assignments/<assignment_id>/results
+# Method: GET
+# Purpose:
+#   - Return previously submitted answers and scores for a given user/assignment
+# -------------------------------------------------------------------------------------
+@app.route('/api/assignments/<assignment_id>/results', methods=['GET'])
+def get_assignment_results(assignment_id):
+    user_id = request.args.get('user_id')
+
+    try:
+        conn = get_db_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT question_id, user_answer, correct_answer, points_awarded, max_points, correct
+                FROM assignment_results
+                WHERE assignment_id = %s AND user_id = %s
+            """, (assignment_id, user_id))
+            results = cur.fetchall()
+
+        return jsonify({"results": results})
+
+    except Exception as e:
+        print(f"Error fetching assignment results: {e}")
+        return jsonify({"error": "Failed to retrieve results"}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
+
+
+# ----------------------------- Get All Grades for User -----------------------------
+# Route: /api/grades/<user_id>
+# Method: GET
+# Purpose:
+#   - Return final grades (total score) for all assignments for a user
+#   - Each row includes assignment title and course context
+# -----------------------------------------------------------------------------------
 @app.route('/api/grades/<user_id>', methods=['GET'])
 def get_grades(user_id):
     try:
@@ -761,15 +952,11 @@ def get_grades(user_id):
 
         print(f"Fetching grades for user_id: {user_id}")
 
-        # currently all assignments are treated equally in grading and reporting
-        # TO DO: different categories ('quiz', 'project', 'exam') 
-        # TO DO: weighted grading per category
-        # assignment type should be stored in the course_assignments table
-        # TO DO: include 'type' in SELECT and use in frontend filtering
+        # TO DO: add assignment type (quiz, exam, etc.) to support categories/weighting
 
         # query for course information
         query = """
-        SELECT ca.assignment_title, g.course_code, g.score, g.max_score
+        SELECT g.assignment_id, ca.assignment_title, g.course_code, g.score, g.max_score
         FROM grades g
         JOIN course_assignments ca ON g.assignment_id = ca.assignment_id
         WHERE g.user_id = %s;
@@ -778,17 +965,17 @@ def get_grades(user_id):
         results = cursor.fetchall()
         print(f"Query results: {results}")
 
-        # grades access by column name
+        # convert DB rows to clean list of dictionaries
         grades = [
-    {
-        "assignment_title": r["assignment_title"],
-        "course_code": r["course_code"],
-        "score": r["score"],
-        "max_score": r["max_score"]
-    }
-    for r in results
-    
-    ]
+            {
+                "assignment_id": r["assignment_id"],
+                "assignment_title": r["assignment_title"],
+                "course_code": r["course_code"],
+                "score": r["score"],
+                "max_score": r["max_score"]
+            } for r in results  
+        ]
+        
         cursor.close()
         conn.close()
 

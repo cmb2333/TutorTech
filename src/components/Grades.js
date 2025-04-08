@@ -1,14 +1,25 @@
+/* --------------------------------- Grades.js ---------------------------------
+Component responsible for 
+  - fetching and displaying a student's grades
+  - filtering by course (if provided)
+  - enabling selection of specific assignments for detailed review
+------------------------------------------------------------------------------- */
+
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Spinner, Alert } from 'react-bootstrap';
 
-function Grades({ userId, filterCourse }) {
-    const [grades, setGrades] = useState([]); // store grades
-    const [loading, setLoading] = useState(true); // track loading state
-    const [error, setError] = useState(null); // store error messages
+/* -------------------------- Main Grades Component -------------------------- */
+function Grades({ userId, filterCourse, onAssignmentSelect }) {
 
-    // fetch grades from API
+    /* ----- state: store fetched grade data, loading status, and errors ----- */
+    const [grades, setGrades] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    /* -------------------- Fetch grades on mount or userId change -------------------- */
     useEffect(() => {
-        setLoading(true);
+        setLoading(true); // trigger loading spinner when fetching starts
+
         fetch(`http://localhost:5000/api/grades/${userId}`)
             .then(response => {
                 if (!response.ok) {
@@ -17,12 +28,13 @@ function Grades({ userId, filterCourse }) {
                 return response.json();
             })
             .then(data => {
-                // to only display the grades of the specific course your on
+
+                // only show grades for the current course if specified
                 if (filterCourse) {
                     const filtered = data.filter(g => g.course_code === filterCourse);
                     setGrades(filtered);
                   } else {
-                    setGrades(data);
+                    setGrades(data); // full grade list
                   }
                   
                 setLoading(false);
@@ -33,9 +45,9 @@ function Grades({ userId, filterCourse }) {
                 setError("Failed to fetch grades");
                 setLoading(false);
             });
-    }, [userId, filterCourse]); // get user id and specific course
+    }, [userId, filterCourse]); // refetch when user or course changes
 
-    // display loading gradws
+    /* -------------------- CASE: Loading Grades -------------------- */
     if (loading) {
         return <div className="text-center">
             <Spinner animation="border" variant="primary" />
@@ -43,21 +55,23 @@ function Grades({ userId, filterCourse }) {
         </div>;
     }
 
-    // error message
+    /* -------------------- CASE: Error Fetching Grades -------------------- */
     if (error) {
         return <Alert variant="danger">{error}</Alert>;
     }
 
-    // display message if no grades are available
+    /* -------------------- CASE: No Grades Found -------------------- */
     if (grades.length === 0 && !loading) {
         return <p>No grades available yet.</p>;
     }
 
-    // grades table
+    /* -------------------- Render: Grades Table -------------------- */
     return (
         // TODO: group grades by assignment type (quiz, project, homework)
         <Container className='Grades' data-aos="slide-up" data-aos-delay="100">
             <h2>Grades</h2>
+
+            {/* table of assignment scores */}
             <Table striped bordered hover>
                 <thead>
                     <tr>
@@ -67,14 +81,35 @@ function Grades({ userId, filterCourse }) {
                     </tr>
                 </thead>
                 <tbody>
+                    {/* loop through each grade and render row */}
                     {grades.map((grade, index) => (
-                        <tr key={index}>
-                            <td>{grade.assignment_title}</td>
-                            {/* highlight grade based on score */}
-                            <td style={{ color: grade.graded_score >= 80 ? 'green' : 'red' }}>
+                        <tr
+                        key={index}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                            console.log("Grade clicked:", grade); // debug log
+
+                            // optional callback to open assignment detail view
+                            if (onAssignmentSelect) {
+                              onAssignmentSelect({
+                                assignment_id: grade.assignment_id,
+                                course_code: grade.course_code,
+                                assignment_title: grade.assignment_title
+                              });
+                            }
+                          }}
+                        >
+
+                        {/* assignment name */}
+                        <td>{grade.assignment_title}</td>
+
+                        {/* color-coded score: green if >= 80%, red otherwise */}
+                        <td style={{ color: grade.score >= 80 ? 'green' : 'red' }}>
                             {parseFloat(grade.score).toFixed(2)}
-                            </td>
-                            <td>{parseFloat(grade.max_score).toFixed(2)}</td>
+                        </td>
+
+                        {/* total possible points */}
+                        <td>{parseFloat(grade.max_score).toFixed(2)}</td>
                         </tr>
                     ))}
                 </tbody>

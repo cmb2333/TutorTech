@@ -1,0 +1,31 @@
+/* ---------------------------- Lecture View Styling ---------------------------- */
+
+.lecture-section {
+    padding: 1rem 0;
+  }
+  
+  .lecture-item {
+    margin-bottom: 20px;
+  }
+  
+  .lecture-item strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .lecture-video-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .responsive-iframe {
+    width: 100%;
+    max-width: 1000px;
+    aspect-ratio: 16 / 9;
+    border: none;
+  }
+  

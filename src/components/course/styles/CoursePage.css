@@ -1,0 +1,61 @@
+/* ---------------------------- Course Page Layout ---------------------------- */
+.course-page {
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 5px;
+    box-sizing: border-box;
+    position: relative;
+    min-height: 80vh;
+  }
+  
+  .course-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 2;
+    overflow: auto;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    min-width: 200px;
+    min-height: 50vh;
+    
+  }
+
+  /* ---------------------------- AI Bot Sidebar ---------------------------- */
+  .bot-section {
+    position: sticky;
+    top: 0;
+    width: 400px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    box-sizing: border-box;
+    transition: max-height 0.2s ease-in-out;
+  }
+  
+  .bot-label {
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    width: 100%;
+  }
+  
+  .bot-type-selector {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+  }
+
+  
