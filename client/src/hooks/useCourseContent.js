@@ -39,7 +39,7 @@ export function useCourseContent(courseId, userId) {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/courses/${courseId}`);
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/${courseId}`);
         const data = await res.json();
         if (res.ok) setCourse(data);
         else console.error('Course fetch failed:', data.message);
@@ -50,7 +50,7 @@ export function useCourseContent(courseId, userId) {
 
     const fetchModules = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/courses/${courseId}/modules`);
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/${courseId}/modules`);
         const data = await res.json();
         if (res.ok && data.length > 0) setModules(data);
       } catch (err) {
@@ -71,8 +71,8 @@ export function useCourseContent(courseId, userId) {
   const buildModulesWithContent = async () => {
     const enriched = await Promise.all(modules.map(async (mod) => {
       const [lecRes, asgRes] = await Promise.all([
-        fetch(`http://localhost:5000/modules/${mod.id}/lectures`),
-        fetch(`http://localhost:5000/modules/${mod.id}/assignments`)
+        fetch(`${process.env.REACT_APP_API_URL}/modules/${mod.id}/lectures`),
+        fetch(`${process.env.REACT_APP_API_URL}/modules/${mod.id}/assignments`)
       ]);
       const lectures = await lecRes.json();
       const assignments = await asgRes.json();
@@ -96,8 +96,8 @@ export function useCourseContent(courseId, userId) {
 
       try {
         const [lecRes, asgRes] = await Promise.all([
-          fetch(`http://localhost:5000/modules/${selectedModule.id}/lectures`),
-          fetch(`http://localhost:5000/modules/${selectedModule.id}/assignments`)
+          fetch(`${process.env.REACT_APP_API_URL}/modules/${selectedModule.id}/lectures`),
+          fetch(`${process.env.REACT_APP_API_URL}/modules/${selectedModule.id}/assignments`)
         ]);
         const lectures = await lecRes.json();
         const assignments = await asgRes.json();
