@@ -7,7 +7,7 @@ import Home from './components/Home';
 import About from './components/About';
 import Login from './components/Login';
 import Chat from './components/Chat';
-import Courses from './components/Courses';
+import { CoursePage } from './components/course';
 import Signup from './components/Signup';
 import CoursePage from './components/CoursePage';
 import Dashboard from './components/Dashboard';
