@@ -21,7 +21,6 @@ const Assignment = ({ assignment, userId = 'guest', onAskChat }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // track current question
     const [answers, setAnswers] = useState({}); 
     const [results, setResults] = useState([]); 
-    const [totalScore, setTotalScore] = useState(0);
 
     const [loading, setLoading] = useState(false); // track loading state
     const [submitting, setSubmitting] = useState(false); // track submitting state
@@ -67,7 +66,6 @@ const Assignment = ({ assignment, userId = 'guest', onAskChat }) => {
       
           if (res.ok && data.results && data.results.length > 0) {
             setResults(data.results);
-            setTotalScore(data.total_score);
           } else {
             // Don't do anything — assume user hasn't completed the assignment
             setResults([]); // ensure we clear old results
@@ -99,36 +97,37 @@ const Assignment = ({ assignment, userId = 'guest', onAskChat }) => {
 
     /* ------------------------ Submit assignment for grading ------------------------ */
     const handleSubmitAssignment = async () => {
-        setSubmitting(true); // show spinner
-
+        setSubmitting(true);
+      
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assignments/${assignment.assignment_id}/submit`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: userId || 'guest',
-                    assignment_id: assignment.assignment_id,
-                    course_code: assignment.course_code,
-                    answers: answers,
-                    score: totalScore,
-                    max_score: results.reduce((acc, res) => acc + (res.max_points || 0), 0),
-                }),                
-            });
-
-            const result = await response.json(); // parse grading result from backend
-            if (response.ok) {
-                setTotalScore(result.total_score); // update total score after grading
-                setResults(result.results); // update individual question feedback
-            } else {
-                alert(result.error || "failed to submit assignment.");
-            }
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assignments/${assignment.assignment_id}/submit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: userId || 'guest',
+              assignment_id: assignment.assignment_id,
+              course_code: assignment.course_code,
+              answers: answers,
+      
+              score: 0,
+              max_score: questions.reduce((acc, q) => acc + (q.max_points || 0), 0)
+            })
+          });
+      
+          const result = await response.json();
+          if (response.ok) {
+            setResults(result.results); // assignment results
+          } else {
+            alert(result.error || "Failed to submit assignment.");
+          }
         } catch (error) {
-            console.error("error submitting assignment:", error);
-            alert("an error occurred while submitting.");
+          console.error("error submitting assignment:", error);
+          alert("An error occurred while submitting.");
         } finally {
-            setSubmitting(false); // hide spinner
+          setSubmitting(false);
         }
-    };
+      };
+      
 
     /* ------------------------ Build AI prompt and send to Chat ------------------------ */
     const handleAskChat = (question, res) => {
@@ -346,7 +345,16 @@ const Assignment = ({ assignment, userId = 'guest', onAskChat }) => {
             })}
 
             {/* Total Score at the Bottom */}
-            <h5>Total Score: {totalScore}/{results.reduce((acc, res) => acc + (res.max_points || 0), 0)}</h5>
+            <h5>
+                Total Score: {
+                    results.reduce((acc, res) => acc + (parseFloat(res.points_awarded) || 0), 0).toFixed(2)
+                } / {
+                    results.reduce((acc, res) => acc + (parseFloat(res.max_points) || 0), 0).toFixed(2)
+                }
+            </h5>
+
+
+
         </div>
     );
 

@@ -13,29 +13,29 @@ export function useCourseContent(courseId, userId) {
   const skipAutoBuildRef = useRef(false); // prevents auto build when manually jumping to step
 
   /* ----- core course/module state ----- */
-  const [course, setCourse] = useState(null); // full course object
-  const [modules, setModules] = useState([]); // list of module metadata
-  const [modulesWithContent, setModulesWithContent] = useState([]); // modules w/ lectures + assignments
-  
+  const [course, setCourse] = useState(null);
+  const [modules, setModules] = useState([]);
+  const [modulesWithContent, setModulesWithContent] = useState([]);
+  const [moduleUnlockStatus, setModuleUnlockStatus] = useState([]);
 
-  /* ----- selected UI state: what user is currently viewing ----- */
-  const [selectedSection, setSelectedSection] = useState('home'); // 'home' | 'module' | 'lecture' | 'assignment'
+  /* ----- selected UI state ----- */
+  const [selectedSection, setSelectedSection] = useState('home');
   const [selectedModule, setSelectedModule] = useState(null);
   const [selectedLecture, setSelectedLecture] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
 
-  /* ----- current module's fetched content (lectures/assignments) ----- */
+  /* ----- content of selected module ----- */
   const [moduleLectures, setModuleLectures] = useState([]);
   const [moduleAssignments, setModuleAssignments] = useState([]);
 
-  /* ----- navigation: ordered steps and current index ----- */
-  const [moduleSteps, setModuleSteps] = useState([]); // all steps for current module
-  const [currentIndex, setCurrentIndex] = useState(0); // index within moduleSteps
+  /* ----- step-based navigation state ----- */
+  const [moduleSteps, setModuleSteps] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  /* ----- UI dropdown state: which modules are expanded in the list view ----- */
-  const [expandedModules, setExpandedModules] = useState([]); 
+  /* ----- UI expansion toggle state ----- */
+  const [expandedModules, setExpandedModules] = useState([]);
 
-  /* -------------------- Fetch course + module metadata -------------------- */
+  /* -------------------- Fetch course + modules -------------------- */
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -60,36 +60,54 @@ export function useCourseContent(courseId, userId) {
 
     fetchCourse();
     fetchModules();
-  }, [courseId]); // run effect when courseId changes
+  }, [courseId]);
 
-  /* ------------------------ Enrich modules w/ content ------------------------ */
+    /* ------------------------ Fetch unlocked modules ------------------------ */
+    useEffect(() => {
+      const fetchUnlockStatus = async () => {
+        console.log("📡 Fetching module unlock status for", userId);
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/${courseId}/modules/progress/${userId}`);
+        const data = await res.json();
+        if (res.ok) setModuleUnlockStatus(data);
+      };
+      fetchUnlockStatus();
+    }, [courseId, userId]);
+
+  /* ------------------------ Fetch lectures + assignments ------------------------ */
   useEffect(() => {
-    if (modules.length > 0) buildModulesWithContent();
-  }, [modules]); // run when module list updates
+    if (modules.length > 0 && moduleUnlockStatus.length > 0) {
+      buildModulesWithContent();
+    }
+  }, [modules, moduleUnlockStatus]);
 
-  /* ------------------------ Fetch lectures + assignments per module ------------------------ */
   const buildModulesWithContent = async () => {
     const enriched = await Promise.all(modules.map(async (mod) => {
       const [lecRes, asgRes] = await Promise.all([
         fetch(`${process.env.REACT_APP_API_URL}/modules/${mod.id}/lectures`),
         fetch(`${process.env.REACT_APP_API_URL}/modules/${mod.id}/assignments`)
       ]);
-      const lectures = await lecRes.json();
-      const assignments = await asgRes.json();
-      return { ...mod, lectures, assignments };
+  
+      const lectures = lecRes.ok ? (await lecRes.json()).sort((a, b) => a.sequence_number - b.sequence_number) : [];
+      const assignments = asgRes.ok ? (await asgRes.json()).sort((a, b) => a.sequence_number - b.sequence_number) : [];
+  
+      const unlocked = moduleUnlockStatus.find((m) => m.module_id === mod.id)?.unlocked ?? false;
+  
+      return { ...mod, lectures, assignments, unlocked };
     }));
+  
     setModulesWithContent(enriched);
+    console.log("🧠 Enriched modules:", enriched);
   };
+  
 
-  /* ------------------------ Build module steps when selected ------------------------ */
+  /* ------------------------ Fetch + build steps for selected module ------------------------ */
   useEffect(() => {
+    if (!selectedModule) return;
 
     if (skipAutoBuildRef.current) {
       skipAutoBuildRef.current = false;
-      return; // skip auto build if jumping manually
+      return;
     }
-
-    console.log('⏳ Fetching module content and building steps');
 
     const fetchModuleContent = async () => {
       if (!selectedModule) return;
@@ -99,21 +117,20 @@ export function useCourseContent(courseId, userId) {
           fetch(`${process.env.REACT_APP_API_URL}/modules/${selectedModule.id}/lectures`),
           fetch(`${process.env.REACT_APP_API_URL}/modules/${selectedModule.id}/assignments`)
         ]);
-        const lectures = await lecRes.json();
-        const assignments = await asgRes.json();
+        const lectures = lecRes.ok ? (await lecRes.json()).sort((a, b) => a.sequence_number - b.sequence_number) : [];
+        const assignments = asgRes.ok ? (await asgRes.json()).sort((a, b) => a.sequence_number - b.sequence_number) : [];
 
-        if (lecRes.ok) setModuleLectures(lectures);
-        if (asgRes.ok) setModuleAssignments(assignments);
+        setModuleLectures(lectures);
+        setModuleAssignments(assignments);
 
-        // build navigation steps: module home -> lectures -> assignments
         const steps = [
           { type: 'module', data: selectedModule },
           ...lectures.map(lec => ({ type: 'lecture', data: lec })),
           ...assignments.map(asg => ({ type: 'assignment', data: asg }))
         ];
 
-        setModuleSteps(steps); // set steps for navigation
-        setCurrentIndex(0); // reset to beginning
+        setModuleSteps(steps);
+        setCurrentIndex(0);
         setSelectedSection('module');
         setSelectedLecture(null);
         setSelectedAssignment(null);
@@ -123,9 +140,9 @@ export function useCourseContent(courseId, userId) {
     };
 
     fetchModuleContent();
-  }, [selectedModule]); // re-run when selected module changes
+  }, [selectedModule]);
 
-  /* ------------------------ Determine prev/next step ------------------------ */
+  /* ------------------------ Determine prev/next steps ------------------------ */
   const isLastStep = currentIndex === moduleSteps.length - 1;
 
   const prevStep = currentIndex > 0
@@ -136,7 +153,7 @@ export function useCourseContent(courseId, userId) {
     ? moduleSteps[currentIndex + 1]
     : getFallbackNextStep();
 
-  /* ------------------------ Fallback to first step of next module ------------------------ */
+  /* ------------------------ Fallback: next module start ------------------------ */
   function getFallbackNextStep() {
     const nextModuleIndex = modulesWithContent.findIndex(m => m.id === selectedModule?.id) + 1;
     return nextModuleIndex < modulesWithContent.length
@@ -144,27 +161,33 @@ export function useCourseContent(courseId, userId) {
       : null;
   }
 
-  /* ------------------------ Fallback to last step of previous module ------------------------ */
+  /* ------------------------ Fallback: prev module last content ------------------------ */
   function getFallbackPrevStep() {
     const prevModuleIndex = modulesWithContent.findIndex(m => m.id === selectedModule?.id) - 1;
     if (prevModuleIndex < 0) return null;
 
-    // get prev mod and last assignment/lecture
     const mod = modulesWithContent[prevModuleIndex];
     const lastAssignment = [...mod.assignments].reverse()[0];
     const lastLecture = [...mod.lectures].reverse()[0];
 
-    // return the last content or just the module overview
     if (lastAssignment) return { type: 'assignment', data: lastAssignment };
     if (lastLecture) return { type: 'lecture', data: lastLecture };
     return { type: 'module', data: mod };
   }
 
-  /* ------------------------ Navigate to next step ------------------------ */
+  /* ------------------------ Step Navigation ------------------------ */
   const goToNextStep = () => {
     if (isLastStep) {
       const next = getFallbackNextStep();
-      if (next) setSelectedModule(next.data);
+  
+      // block if next module is locked
+      if (next && next.type === 'module' && !next.data.unlocked) {
+        return; // do not allow navigation
+      }
+  
+      if (next) {
+        setSelectedModule(next.data);
+      }
     } else {
       const next = moduleSteps[currentIndex + 1];
       setCurrentIndex(currentIndex + 1);
@@ -172,19 +195,16 @@ export function useCourseContent(courseId, userId) {
     }
   };
 
-  /* ------------------------ Navigate to previous step ------------------------ */
   const goToPrevStep = () => {
     if (!prevStep || !prevStep.data) return;
-  
     const prevIndex = currentIndex - 1;
-  
+
     if (prevIndex >= 0) {
       setCurrentIndex(prevIndex);
       updateViewFromStep(moduleSteps[prevIndex]);
       return;
     }
-  
-    // fallback: build from previous module
+
     const mod = modulesWithContent.find(m => {
       if (prevStep.type === 'lecture') {
         return m.lectures.some(l => l.lecture_id === prevStep.data.lecture_id);
@@ -197,18 +217,14 @@ export function useCourseContent(courseId, userId) {
       }
       return false;
     });
-  
-    if (mod) {
-      jumpToContentStep(prevStep.type, prevStep.data, mod);
-    }
-  };
-  
 
-  /* ------------------------ Update selected view state ------------------------ */
+    if (mod) jumpToContentStep(prevStep.type, prevStep.data, mod);
+  };
+
+  /* ------------------------ Update selected content view ------------------------ */
   const updateViewFromStep = (step) => {
     if (!step || !step.data) return;
-  
-    // find the module this step belongs to (from modulesWithContent)
+
     const mod = modulesWithContent.find(m => {
       if (step.type === 'lecture') {
         return m.lectures.some(l => l.lecture_id === step.data.lecture_id);
@@ -221,15 +237,18 @@ export function useCourseContent(courseId, userId) {
       }
       return false;
     });
-  
-    if (mod) setSelectedModule(mod); // sync the active module
-  
+
+    if (mod) setSelectedModule(mod);
+
     switch (step.type) {
       case 'module':
         setSelectedSection('module');
         setSelectedLecture(null);
         setSelectedAssignment(null);
+        setModuleLectures(mod.lectures || []);
+        setModuleAssignments(mod.assignments || []);
         break;
+      
       case 'lecture':
         setSelectedSection('lecture');
         setSelectedLecture(step.data);
@@ -240,36 +259,40 @@ export function useCourseContent(courseId, userId) {
         break;
     }
   };
-  
 
-  /* ------------------------ Jump directly to a specific step ------------------------ */
+  /* ------------------------ Jump to specific step manually ------------------------ */
   const jumpToContentStep = (type, data, mod) => {
     if (!mod) return;
-  
+
     skipAutoBuildRef.current = true;
-  
+
     const steps = [
       { type: 'module', data: mod },
       ...mod.lectures.map(lec => ({ type: 'lecture', data: lec })),
       ...mod.assignments.map(asg => ({ type: 'assignment', data: asg }))
     ];
-  
-    const idKey = type === 'lecture' ? 'lecture_id' : 'assignment_id'; // match by correct ID
+
+    const idKey = type === 'lecture' ? 'lecture_id' : 'assignment_id';
     const stepIndex = steps.findIndex(s => s.type === type && s.data?.[idKey] === data?.[idKey]);
-  
+
     if (stepIndex >= 0) {
       setModuleSteps(steps);
       setCurrentIndex(stepIndex);
     }
-  
+
     setSelectedModule(mod);
     setSelectedSection(type);
     if (type === 'lecture') setSelectedLecture(data);
     if (type === 'assignment') setSelectedAssignment(data);
+
+    
+    if (type === 'module') {
+      setModuleLectures(mod.lectures || []);
+      setModuleAssignments(mod.assignments || []);
+    }
   };
-  
-  
-  /* ------------------------ Toggle module expansion UI ------------------------ */
+
+  /* ------------------------ Expand/collapse module UI toggle ------------------------ */
   const toggleModuleExpand = (moduleId) => {
     setExpandedModules((prev) =>
       prev.includes(moduleId)
@@ -286,7 +309,7 @@ export function useCourseContent(courseId, userId) {
     );
   };
 
-  /* ------------------------ Expose values and actions to consuming component ------------------------ */
+  /* ------------------------ Expose data + methods to consumer ------------------------ */
   return {
     course,
     modulesWithContent,
@@ -305,6 +328,8 @@ export function useCourseContent(courseId, userId) {
     isModuleExpanded,
     setSelectedModule,
     setSelectedSection,
+    setSelectedAssignment,
     findModuleByAssignment
   };
 }
+

@@ -109,6 +109,23 @@
   .module-item.active {
     background-color: var(--primary-tint);
   }
+
+  .module-item.locked {
+    color: #999;
+    cursor: default;
+    pointer-events: auto; /* keep hover effects! */
+  }
+
+  .preview-item.locked {
+    color: #999;
+    cursor: default;
+    pointer-events: auto; /* keep hover effects! */
+  }
+  
+  .preview-item.locked:hover {
+    background-color: var(--primary-tint);
+    color: #999;
+  }
   
 /* -------------------- Dropdown: Module Preview --------------------- */
   .module-preview {

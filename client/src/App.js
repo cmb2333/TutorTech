@@ -8,6 +8,7 @@ import About from './components/About';
 import Login from './components/Login';
 import Chat from './components/Chat';
 import { CoursePage } from './components/course';
+import Courses from './components/Courses';
 import Signup from './components/Signup';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
