@@ -47,11 +47,11 @@ function CourseMenuBar({
                 <>
                 Module {selectedModule.module_sequence} – {selectedModule.module_title}
                 <span className="section-label">
-                    {selectedSection === 'lectures' &&
+                    {selectedSection === 'lecture' &&
                     (selectedLecture
                         ? ` - Lectures – ${selectedLecture.lecture_title}`
                         : ' - Lectures')}
-                    {selectedSection === 'assignments' &&
+                    {selectedSection === 'assignment' &&
                     (selectedAssignment
                         ? ` - Assignments – ${selectedAssignment.assignment_title}`
                         : ' - Assignments')}
@@ -114,16 +114,19 @@ function CourseMenuBar({
             {modules.map((mod) => (
               <div
                 key={mod.id}
-                className={`module-item ${hoveredModule?.id === mod.id ? 'active' : ''}`}
+                className={`module-item ${hoveredModule?.id === mod.id ? 'active' : ''} ${!mod.unlocked ? 'locked' : ''}`}
                 onMouseEnter={() => setHoveredModule(mod)}
                 onClick={() => {
-                  setDropdownOpen(false);         // close dropdown
-                  setSelectedModule(mod);         // select module
-                  setSelectedSection('module');   // show module overview screen
+                  if (!mod.unlocked) return;
+                  setDropdownOpen(false);
+                  setSelectedModule(mod);
+                  setSelectedSection('module');
                 }}
               >
                 Module {mod.module_sequence} – {mod.module_title}
+                {!mod.unlocked}
               </div>
+
             ))}
           </div>
 
@@ -136,33 +139,53 @@ function CourseMenuBar({
                 <h6 className="mb-2 px-2">Lectures</h6>
 
                 {/* show preview list of lectures */}
-                {hoveredModule.lectures.map((lec) => (
-                  <div
-                    key={lec.lecture_id}
-                    className="preview-item"
-                    onClick={() => {
-                      onLectureClick(lec, hoveredModule)
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    {lec.lecture_title}
-                  </div>
-                ))}
+                {hoveredModule.lectures.length > 0 ? (
+                  hoveredModule.lectures.map((lec) => (
+                    <div
+                      key={lec.lecture_id}
+                      className={`preview-item ${!hoveredModule.unlocked ? 'locked' : ''}`}
+                      onClick={(e) => {
+                        if (!hoveredModule.unlocked) {
+                          e.preventDefault(); // stop clicks from doing anything
+                          return;
+                        }
+                        onLectureClick(lec, hoveredModule);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      {hoveredModule.unlocked ? lec.lecture_title : `${lec.lecture_title}`}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted px-2">No lectures yet.</p>
+                )}
+
+
 
                 {/* show preview list of assignments */}
                 <h6 className="mt-3 mb-2 px-2">Assignments</h6>
-                {hoveredModule.assignments.map((asg) => (
-                  <div
-                    key={asg.assignment_id}
-                    className="preview-item"
-                    onClick={() => {
-                      onAssignmentClick(asg, hoveredModule)
-                      setDropdownOpen(false);
-                    }}                    
-                  >
-                    {asg.assignment_title}
-                  </div>
-                ))}
+                {hoveredModule.assignments.length > 0 ? (
+                  hoveredModule.assignments.map((asg) => (
+                    <div
+                      key={asg.assignment_id}
+                      className={`preview-item ${!hoveredModule.unlocked ? 'locked' : ''}`}
+                      onClick={(e) => {
+                        if (!hoveredModule.unlocked) {
+                          e.preventDefault(); // stop clicks from doing anything
+                          return;
+                        }
+                        onAssignmentClick(asg, hoveredModule);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      {hoveredModule.unlocked ? asg.assignment_title : `${asg.assignment_title}`}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted px-2">No assignments yet.</p>
+                )}
+
+
               </>
             ) : (
               /* message when no module is hovered */

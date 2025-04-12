@@ -27,6 +27,8 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    console.log("API URL:", process.env.REACT_APP_API_URL);
+
     try {
       // make login request to backend API
       const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {

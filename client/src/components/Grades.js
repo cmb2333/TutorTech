@@ -8,6 +8,26 @@ Component responsible for
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Spinner, Alert } from 'react-bootstrap';
 
+function groupGradesByModule(grades) {
+    const grouped = {};
+  
+    grades.forEach((g) => {
+      const key = `${g.module_sequence || 0} - ${g.module_title || 'Unknown Module'}`;
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(g);
+    });
+  
+    return Object.fromEntries(
+      Object.entries(grouped).sort((a, b) => {
+        const aSeq = parseInt(a[0].split(' - ')[0]);
+        const bSeq = parseInt(b[0].split(' - ')[0]);
+        return aSeq - bSeq;
+      })
+    );
+  }
+
 /* -------------------------- Main Grades Component -------------------------- */
 function Grades({ userId, filterCourse, onAssignmentSelect }) {
 
@@ -80,36 +100,39 @@ function Grades({ userId, filterCourse, onAssignmentSelect }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {/* loop through each grade and render row */}
-                    {grades.map((grade, index) => (
-                        <tr
-                        key={index}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => {
-                            console.log("Grade clicked:", grade); // debug log
+                {/* loop through each grade and render row */}
+                {Object.entries(groupGradesByModule(grades)).map(([moduleLabel, moduleGrades]) => (
+                    <React.Fragment key={moduleLabel}>
+                        {/* Module header row */}
+                        <tr className="table-light">
+                        <td colSpan={3}>
+                            <strong>{moduleLabel}</strong>
+                        </td>
+                        </tr>
 
-                            // optional callback to open assignment detail view
+                        {/* Assignment rows */}
+                        {moduleGrades.map((grade) => (
+                        <tr
+                            key={grade.assignment_id}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
                             if (onAssignmentSelect) {
-                              onAssignmentSelect({
+                                onAssignmentSelect({
                                 assignment_id: grade.assignment_id,
                                 course_code: grade.course_code,
                                 assignment_title: grade.assignment_title
-                              });
+                                });
                             }
-                          }}
+                            }}
                         >
-
-                        {/* assignment name */}
-                        <td>{grade.assignment_title}</td>
-
-                        {/* color-coded score: green if >= 80%, red otherwise */}
-                        <td style={{ color: grade.score >= 80 ? 'green' : 'red' }}>
+                            <td>{grade.assignment_title}</td>
+                            <td style={{ color: grade.score >= 80 ? 'green' : 'red' }}>
                             {parseFloat(grade.score).toFixed(2)}
-                        </td>
-
-                        {/* total possible points */}
-                        <td>{parseFloat(grade.max_score).toFixed(2)}</td>
+                            </td>
+                            <td>{parseFloat(grade.max_score).toFixed(2)}</td>
                         </tr>
+                        ))}
+                    </React.Fragment>
                     ))}
                 </tbody>
             </Table>

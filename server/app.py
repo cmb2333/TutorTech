@@ -10,6 +10,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, Range
 import time
 import json
+import re
 
 # Load environment variables
 load_dotenv()
@@ -501,7 +502,7 @@ def get_module_lectures(module_id):
             SELECT lecture_id, lecture_title, video_link
             FROM course_lectures
             WHERE module_id = %s
-            ORDER BY lecture_id
+            ORDER BY sequence_number
         """, (module_id,))
         lectures = cursor.fetchall()
 
@@ -536,7 +537,7 @@ def get_module_assignments(module_id):
             SELECT assignment_id, assignment_title, max_score
             FROM course_assignments
             WHERE module_id = %s
-            ORDER BY assignment_id
+            ORDER BY sequence_number
         """, (module_id,))
         assignments = cursor.fetchall()
 
@@ -544,6 +545,81 @@ def get_module_assignments(module_id):
 
     except Exception as e:
         print(f"Error fetching module assignments: {e}")
+        return jsonify({'message': 'Server error'}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+# ---------------------- Get Module Unlock Status -----------------------
+# Route: /courses/<course_code>/modules/progress/<user_id>
+# Method: GET
+# Purpose:
+#   - Returns unlock status for each module in a course for a given user
+#   - Unlock logic:
+#       • Module 1 is always unlocked
+#       • A module is unlocked only if all assignments from the previous module are completed
+#   - Used to restrict access to content based on sequential progression
+# -----------------------------------------------------------------------
+@app.route('/courses/<course_code>/modules/progress/<user_id>', methods=['GET'])
+def get_module_progress(course_code, user_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        # fetch all modules in order for the course
+        cursor.execute("""
+            SELECT id, module_sequence FROM course_modules
+            WHERE course_code = %s
+            ORDER BY module_sequence
+        """, (course_code,))
+        modules = cursor.fetchall()
+
+        # fetch all assignments the user has completed
+        cursor.execute("""
+            SELECT assignment_id FROM grades
+            WHERE user_id = %s
+        """, (user_id,))
+        completed_assignments = set(row['assignment_id'] for row in cursor.fetchall())
+
+        # collect all module IDs to fetch related assignments in a single query
+        module_ids = [mod['id'] for mod in modules]
+        assignment_rows = []
+        if module_ids:
+            placeholders = ','.join(['%s'] * len(module_ids))
+            query = f"""
+                SELECT module_id, assignment_id FROM course_assignments
+                WHERE module_id IN ({placeholders})
+            """
+            cursor.execute(query, module_ids)
+            assignment_rows = cursor.fetchall()
+
+        # group assignment IDs by module ID
+        assignments_by_module = {}
+        for row in assignment_rows:
+            mod_id = row['module_id']
+            if mod_id not in assignments_by_module:
+                assignments_by_module[mod_id] = []
+            assignments_by_module[mod_id].append(row['assignment_id'])
+
+        # compute unlock status per module
+        unlock_status = []
+        for i, mod in enumerate(modules):
+            module_id = mod['id']
+            if i == 0:
+                # first module is always unlocked
+                unlocked = True
+            else:
+                # unlock if all previous module's assignments are completed
+                prev_mod_id = modules[i - 1]['id']
+                prev_assignments = assignments_by_module.get(prev_mod_id, [])
+                unlocked = all(a in completed_assignments for a in prev_assignments)
+
+            unlock_status.append({ 'module_id': module_id, 'unlocked': unlocked })
+
+        return jsonify(unlock_status), 200
+
+    except Exception as e:
         return jsonify({'message': 'Server error'}), 500
 
     finally:
@@ -927,7 +1003,7 @@ STUDENT ANSWER:
 INSTRUCTIONS:
 1. Explain which keywords or ideas were addressed and which were missing.
 2. Justify how well the student answered the question based on those key ideas.
-3. On the FINAL line, provide a numeric score from 0 to {max_points}. Only the number. No extra words.
+3. On the FINAL line, provide a numeric score from 0 to {max_points}. Only the number. No extra words or spaces.
 """
         # --- Log prompt and user input ---
         print("---------------------------------------------------")
@@ -951,8 +1027,16 @@ INSTRUCTIONS:
 
         # extract final numeric score from response
         lines = full_response.splitlines()
-        raw_score = lines[-1].strip()
-        score = float(raw_score)
+
+        # extract a clean number from the last line of the response
+        last_line = lines[-1].strip()
+        matches = re.findall(r'\b\d+(?:\.\d+)?\b', last_line)
+
+        if matches:
+            score = float(matches[0])  # grab the first valid number
+        else:
+            score = 0  # fallback if parsing fails
+
 
         return max(0, min(score, max_points))  # bound to [0, max]
 
@@ -1118,8 +1202,8 @@ def get_assignment_results(assignment_id):
 # Route: /api/grades/<user_id>
 # Method: GET
 # Purpose:
-#   - Return final grades (total score) for all assignments for a user
-#   - Each row includes assignment title and course context
+#   - Return final grades for all assignments for a user
+#   - Each row includes assignment, course, and module context
 # -----------------------------------------------------------------------------------
 @app.route('/api/grades/<user_id>', methods=['GET'])
 def get_grades(user_id):
@@ -1127,44 +1211,38 @@ def get_grades(user_id):
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        print(f"Fetching grades for user_id: {user_id}")
-
-        # TO DO: add assignment type (quiz, exam, etc.) to support categories/weighting
-
-        # query for course information
+        # query for course + assignment + module info
         query = """
-        SELECT g.assignment_id, ca.assignment_title, g.course_code, g.score, g.max_score
+        SELECT 
+            g.assignment_id,
+            ca.assignment_title,
+            g.course_code,
+            g.score,
+            g.max_score,
+            cm.module_sequence,
+            cm.module_title
         FROM grades g
         JOIN course_assignments ca ON g.assignment_id = ca.assignment_id
-        WHERE g.user_id = %s;
+        JOIN course_modules cm ON ca.module_id = cm.id
+        WHERE g.user_id = %s
+        ORDER BY cm.module_sequence, ca.assignment_title;
         """
         cursor.execute(query, (user_id,))
         results = cursor.fetchall()
-        print(f"Query results: {results}")
 
-        # convert DB rows to clean list of dictionaries
-        grades = [
-            {
-                "assignment_id": r["assignment_id"],
-                "assignment_title": r["assignment_title"],
-                "course_code": r["course_code"],
-                "score": r["score"],
-                "max_score": r["max_score"]
-            } for r in results  
-        ]
-        
-        cursor.close()
-        conn.close()
+        # pass everything back to frontend
+        return jsonify(results)
 
-        return jsonify(grades)
-
-    # error handling for console
     except psycopg2.Error as e:
         print(f"Database error: {e.pgcode} - {e.pgerror}")
         return jsonify({"error": "Database error occurred"}), 500
     except Exception as e:
         print(f"General error: {str(e)}")
         return jsonify({"error": "Failed to fetch grades"}), 500
+    finally:
+        if conn:
+            conn.close()
+
 
 
 

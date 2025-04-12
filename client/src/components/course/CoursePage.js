@@ -60,6 +60,7 @@ function CoursePage() {
     isModuleExpanded,
     setSelectedModule,
     setSelectedSection,
+    setSelectedAssignment,
     findModuleByAssignment
   } = useCourseContent(courseId, userId);
 
@@ -204,10 +205,20 @@ function CoursePage() {
                     userId={userId}
                     filterCourse={course?.course_code}
                     onAssignmentSelect={(assignment) => {
-                      setSelectedAssignment(assignment);
-                      setSelectedSection('assignments');
-                      setSelectedModule(findModuleByAssignment(assignment.assignment_id));
+                      const mod = findModuleByAssignment(assignment.assignment_id);
+                    
+                      // get the enriched version of the assignment from modulesWithContent
+                      const enrichedAssignment = mod?.assignments.find(
+                        (a) => a.assignment_id === assignment.assignment_id
+                      );
+                    
+                      if (mod && enrichedAssignment) {
+                        jumpToContentStep('assignment', enrichedAssignment, mod);
+                      } else {
+                        console.warn('Could not jump to assignment — module or data not found.');
+                      }
                     }}
+                    
                   />
                 </>
               )}

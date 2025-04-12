@@ -31,11 +31,16 @@ function CourseHome({
         {modulesWithContent.map((mod) => (
           <div key={mod.id} className="module-collapse-container mb-3">
 
-            {/* ----- Toggle Header ----- */}
+            {/* ----- Toggle Header (always clickable) ----- */}
             <div className="d-flex justify-content-between align-items-center module-header"
                  onClick={() => toggleModuleExpand(mod.id)}
                  style={{ cursor: 'pointer' }}>
-              <strong>Module {mod.module_sequence}: {mod.module_title}</strong>
+              <strong>
+                Module {mod.module_sequence}: {mod.module_title}
+                {!mod.unlocked && (
+                  <span className="ms-2 badge bg-secondary">Locked</span>
+                )}
+              </strong>
               <span className="material-symbols-outlined">
                 {isModuleExpanded(mod.id) ? 'expand_less' : 'expand_more'}
               </span>
@@ -57,13 +62,17 @@ function CourseHome({
                   <div className="d-flex flex-wrap gap-3">
                     {mod.lectures.length > 0 ? (
                       mod.lectures.map((lec) => (
-                        <div key={lec.lecture_id} className="card shadow-sm p-3 lecture-card" style={{ minWidth: '220px' }}>
+                        <div key={lec.lecture_id} className={`shadow-sm p-3 lecture-card ${!mod.unlocked ? 'locked-card' : ''}`} style={{ minWidth: '220px' }}>
                           <div className="d-flex flex-column">
                             <button
                               className="btn btn-link text-start text-decoration-none p-0"
-                              onClick={() => jumpToContentStep('lecture', lec, mod)}
+                              onClick={() => mod.unlocked && jumpToContentStep('lecture', lec, mod)}
+                              disabled={!mod.unlocked}
                             >
-                              <h6 className="mb-0">{lec.lecture_title}</h6>
+                              <h6 className="mb-0">
+                                {lec.lecture_title}
+                                {!mod.unlocked}
+                              </h6>
                             </button>
                           </div>
                         </div>
@@ -83,13 +92,17 @@ function CourseHome({
                   <div className="d-flex flex-wrap gap-3">
                     {mod.assignments.length > 0 ? (
                       mod.assignments.map((asg) => (
-                        <div key={asg.assignment_id} className="card shadow-sm p-3 assignment-card" style={{ minWidth: '220px' }}>
+                        <div key={asg.assignment_id} className={`shadow-sm p-3 assignment-card ${!mod.unlocked ? 'locked-card' : ''}`} style={{ minWidth: '220px' }}>
                           <div className="d-flex flex-column">
                             <button
                               className="btn btn-link text-start text-decoration-none p-0"
-                              onClick={() => jumpToContentStep('assignment', asg, mod)}
+                              onClick={() => mod.unlocked && jumpToContentStep('assignment', asg, mod)}
+                              disabled={!mod.unlocked}
                             >
-                              <h6 className="mb-0">{asg.assignment_title}</h6>
+                              <h6 className="mb-0">
+                                {asg.assignment_title}
+                                {!mod.unlocked}
+                              </h6>
                             </button>
                           </div>
                         </div>
@@ -108,5 +121,6 @@ function CourseHome({
     </div>
   );
 }
+
 
 export default CourseHome;

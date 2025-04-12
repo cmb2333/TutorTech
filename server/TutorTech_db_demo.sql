@@ -37,11 +37,14 @@ CREATE TABLE IF NOT EXISTS course_lectures (
     module_id INT NOT NULL,
     lecture_title VARCHAR(100) NOT NULL,
     video_link VARCHAR(100) NOT NULL,
+    sequence_number INT NOT NULL,
 
     -- foreign key constraint
     CONSTRAINT fk_lecture_module FOREIGN KEY (module_id)
         REFERENCES course_modules (module_id)
         ON DELETE CASCADE
+
+    CONSTRAINT uq_lecture_sequence UNIQUE (module_id, sequence_number)
 );
 
 
@@ -52,11 +55,14 @@ CREATE TABLE IF NOT EXISTS course_assignments (
     module_id INT NOT NULL,
     assignment_title VARCHAR(100) NOT NULL,
     max_score INT NOT NULL,
+    sequence_number INT NOT NULL,
 
     -- foreign key constraint
     CONSTRAINT fk_assignment_module FOREIGN KEY (module_id)
         REFERENCES course_modules (module_id)
         ON DELETE CASCADE
+
+    CONSTRAINT uq_assignment_sequence UNIQUE (module_id, sequence_number)
 );
 
 
@@ -123,8 +129,8 @@ CREATE TABLE IF NOT EXISTS assignment_results (
     assignment_id VARCHAR(10) NOT NULL,
     question_id INT NOT NULL,
     user_answer TEXT,
-    points_awarded INT,
-    max_points INT,
+    points_awarded NUMERIC(5, 2),
+    max_points NUMERIC(5, 2),
     correct BOOLEAN,
     correct_answer JSONB,
     PRIMARY KEY (user_id, assignment_id, question_id),
@@ -177,37 +183,37 @@ VALUES
 -- course_lectures MOCK DATA inserts ------------------------------------------------------------------------
 
 -- ---------------- course_lectures MOCK DATA inserts (module_id = 1) ----------------
-INSERT INTO course_lectures(lecture_id, module_id, lecture_title, video_link)
+INSERT INTO course_lectures(lecture_id, module_id, lecture_title, video_link, sequence_number)
 VALUES
-  ('LEC01', 1, 'Getting Started', 'https://youtu.be/1mqXu3eXylI'),
-  ('LEC02', 2, 'Getting Started', 'https://youtu.be/0N9fVpQmDCQ'),
-  ('LEC03', 3, 'Getting Started', 'https://youtu.be/ifxaJ3lZ-yc'),
-  ('LEC04', 4, 'Getting Started', 'https://youtu.be/2bKGmQCDBtQ'),
-  ('LEC05', 5, 'Getting Started', 'https://youtu.be/azFrptUJOlI'),
-  ('LEC06', 6, 'Getting Started', 'https://youtu.be/B9h5_eVaGXM');
+  ('LEC01', 1, 'Getting Started', 'https://youtu.be/1mqXu3eXylI', 1),
+  ('LEC02', 2, 'Getting Started', 'https://youtu.be/0N9fVpQmDCQ', 1),
+  ('LEC03', 3, 'Getting Started', 'https://youtu.be/ifxaJ3lZ-yc', 1),
+  ('LEC04', 4, 'Getting Started', 'https://youtu.be/2bKGmQCDBtQ', 1),
+  ('LEC05', 5, 'Getting Started', 'https://youtu.be/azFrptUJOlI', 1),
+  ('LEC06', 6, 'Getting Started', 'https://youtu.be/B9h5_eVaGXM', 1);
 
 
 
 -------------------------------------------------------------------------------------------------------------
 
 -- course_assignments MOCK DATA inserts ------------------------------------------------------------------------
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
-	VALUES ('ASGMT01', 'EE499', 'EE499 - Assignment 1', 5, 1);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id, sequence_number)
+	VALUES ('ASGMT01', 'EE499', 'EE499 - Assignment 1', 5, 1, 1);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
-	VALUES ('ASGMT02', 'EE599', 'EE599 - Assignment 1', 10, 2);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id, sequence_number)
+	VALUES ('ASGMT02', 'EE599', 'EE599 - Assignment 1', 10, 2, 1);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
-	VALUES ('ASGMT03', 'PHY530', 'PHY530 - Assignment 1', 15, 3);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id, sequence_number)
+	VALUES ('ASGMT03', 'PHY530', 'PHY530 - Assignment 1', 15, 3, 1);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
-	VALUES ('ASGMT04', 'DOE', 'DOE - Assignment 1', 20, 4);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id, sequence_number)
+	VALUES ('ASGMT04', 'DOE', 'DOE - Assignment 1', 20, 4, 1);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
-	VALUES ('ASGMT05', 'EGRFE', 'EGRFE - Assignment 1', 25, 5);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id, sequence_number)
+	VALUES ('ASGMT05', 'EGRFE', 'EGRFE - Assignment 1', 25, 5, 1);
 
-INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id)
-	VALUES ('ASGMT06', 'SPC', 'SPC - Assignment 1', 30, 6);
+INSERT INTO course_assignments(assignment_id, course_code, assignment_title, max_score, module_id, sequence_number)
+	VALUES ('ASGMT06', 'SPC', 'SPC - Assignment 1', 30, 6, 1);
 
 --assignment_questions MOCK DATA inserts -------------------------------------------------------------------------------------------
 
@@ -325,6 +331,14 @@ ADD CONSTRAINT fk_lecture_module FOREIGN KEY (module_id)
     REFERENCES course_modules (module_id)
     ON DELETE CASCADE;
 
+-- Add the sequence_number column
+ALTER TABLE course_lectures
+ADD COLUMN sequence_number INT;
+
+-- Ensure each module's lectures have unique sequence numbers
+ALTER TABLE course_lectures
+ADD CONSTRAINT uq_lecture_sequence UNIQUE (module_id, sequence_number);
+
 
 ---------------------------- (3) ALTER COURSE ASSIGNMENTS TABLE  --------------------------
 -- Step 1: Add new column for module_id
@@ -345,6 +359,15 @@ ADD CONSTRAINT fk_assignment_module FOREIGN KEY (module_id)
     REFERENCES course_modules (module_id)
     ON DELETE CASCADE;
 
+-- Add the sequence_number column
+ALTER TABLE course_assignments
+ADD COLUMN sequence_number INT;
+
+-- Ensure each module's assignments have unique sequence numbers
+ALTER TABLE course_assignments
+ADD CONSTRAINT uq_assignment_sequence UNIQUE (module_id, sequence_number);
+
+
 ---------------------------- (4) INSERT MOCK DATA FOR MODULES  --------------------------
 INSERT INTO course_modules (course_code, module_title, module_description, module_sequence)
 VALUES 
@@ -356,20 +379,55 @@ VALUES
   ('SPC', 'Introduction', 'Introductory module for SPC', 1);
 
 ---------------------------- (5) UPDATE COURSE_LECTURES  --------------------------
-UPDATE course_lectures SET module_id = 1 WHERE lecture_id = 'LEC01'; -- EE499
-UPDATE course_lectures SET module_id = 2 WHERE lecture_id = 'LEC02'; -- EE599
-UPDATE course_lectures SET module_id = 3 WHERE lecture_id = 'LEC03'; -- PHY530
-UPDATE course_lectures SET module_id = 4 WHERE lecture_id = 'LEC04'; -- DOE
-UPDATE course_lectures SET module_id = 5 WHERE lecture_id = 'LEC05'; -- EGRFE
-UPDATE course_lectures SET module_id = 6 WHERE lecture_id = 'LEC06'; -- SPC
+UPDATE course_lectures 
+SET module_id = 1, sequence_number = 1 
+WHERE lecture_id = 'LEC01'; -- EE499
 
----------------------------- (6) UPDATE COURSE_ASSIGNMENTS  --------------------------
-UPDATE course_assignments SET module_id = 1 WHERE assignment_id = 'ASGMT01'; -- EE499
-UPDATE course_assignments SET module_id = 2 WHERE assignment_id = 'ASGMT02'; -- EE599
-UPDATE course_assignments SET module_id = 3 WHERE assignment_id = 'ASGMT03'; -- PHY530
-UPDATE course_assignments SET module_id = 4 WHERE assignment_id = 'ASGMT04'; -- DOE
-UPDATE course_assignments SET module_id = 5 WHERE assignment_id = 'ASGMT05'; -- EGRFE
-UPDATE course_assignments SET module_id = 6 WHERE assignment_id = 'ASGMT06'; -- SPC
+UPDATE course_lectures 
+SET module_id = 2, sequence_number = 1 
+WHERE lecture_id = 'LEC02'; -- EE599
+
+UPDATE course_lectures 
+SET module_id = 3, sequence_number = 1 
+WHERE lecture_id = 'LEC03'; -- PHY530
+
+UPDATE course_lectures 
+SET module_id = 4, sequence_number = 1 
+WHERE lecture_id = 'LEC04'; -- DOE
+
+UPDATE course_lectures 
+SET module_id = 5, sequence_number = 1 
+WHERE lecture_id = 'LEC05'; -- EGRFE
+
+UPDATE course_lectures 
+SET module_id = 6, sequence_number = 1 
+WHERE lecture_id = 'LEC06'; -- SPC
+
+
+-- ------------------------ (6) UPDATE COURSE_ASSIGNMENTS ----------------------------
+UPDATE course_assignments 
+SET module_id = 1, sequence_number = 1 
+WHERE assignment_id = 'ASGMT01'; -- EE499
+
+UPDATE course_assignments 
+SET module_id = 2, sequence_number = 1 
+WHERE assignment_id = 'ASGMT02'; -- EE599
+
+UPDATE course_assignments 
+SET module_id = 3, sequence_number = 1 
+WHERE assignment_id = 'ASGMT03'; -- PHY530
+
+UPDATE course_assignments 
+SET module_id = 4, sequence_number = 1 
+WHERE assignment_id = 'ASGMT04'; -- DOE
+
+UPDATE course_assignments 
+SET module_id = 5, sequence_number = 1 
+WHERE assignment_id = 'ASGMT05'; -- EGRFE
+
+UPDATE course_assignments 
+SET module_id = 6, sequence_number = 1 
+WHERE assignment_id = 'ASGMT06'; -- SPC
 
 ---------------------------- (7) UPDATE COURSE_ASSIGNMENTS assignment titles  --------------------------
 UPDATE course_assignments
@@ -448,53 +506,160 @@ VALUES
 
 ---------------------------- (9) Create a bunch of mock lectures for each module  --------------------------
 -- Lectures for Module 2 (id: 7)
-INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link)
+INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link, sequence_number)
 VALUES 
-  ('LEC201', 7, 'Overview of Metrology Instruments', 'https://youtu.be/abc123'),
-  ('LEC202', 7, 'Precision Measurement Techniques', 'https://youtu.be/def456'),
-  ('LEC203', 7, 'Advanced Sensors and Automation', 'https://youtu.be/ghi789');
+  ('LEC201', 7, 'Overview of Metrology Instruments', 'https://youtu.be/1mqXu3eXylI', 1),
+  ('LEC202', 7, 'Precision Measurement Techniques', 'https://youtu.be/1mqXu3eXylI', 2),
+  ('LEC203', 7, 'Advanced Sensors and Automation', 'https://youtu.be/1mqXu3eXylI', 3);
 
 -- Lectures for Module 3 (id: 8)
-INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link) VALUES
-  ('LEC07', 8, 'Introduction to Measurement Systems', 'https://youtu.be/dQw4w9WgXcQ'),
-  ('LEC08', 8, 'Fundamentals of Calibration', 'https://youtu.be/dQw4w9WgXcQ');
+INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link, sequence_number) VALUES
+  ('LEC07', 8, 'Introduction to Measurement Systems', 'https://youtu.be/1mqXu3eXylI', 1),
+  ('LEC08', 8, 'Fundamentals of Calibration', 'https://youtu.be/1mqXu3eXylI', 2);
 
 -- Lectures for Module 4 (id: 9)
-INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link) VALUES
-  ('LEC09', 9, 'Understanding Measurement Uncertainty', 'https://youtu.be/dQw4w9WgXcQ'),
-  ('LEC10', 9, 'Traceability in Metrology', 'https://youtu.be/dQw4w9WgXcQ');
+INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link, sequence_number) VALUES
+  ('LEC09', 9, 'Understanding Measurement Uncertainty', 'https://youtu.be/1mqXu3eXylI', 1),
+  ('LEC10', 9, 'Traceability in Metrology', 'https://youtu.be/1mqXu3eXylI', 2);
 
 -- Lectures for Module 5 (id: 10)
-INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link) VALUES
-  ('LEC11', 10, 'Intro to Statistical Techniques', 'https://youtu.be/dQw4w9WgXcQ'),
-  ('LEC12', 10, 'Data Validation Methods', 'https://youtu.be/dQw4w9WgXcQ');
+INSERT INTO course_lectures (lecture_id, module_id, lecture_title, video_link, sequence_number) VALUES
+  ('LEC11', 10, 'Intro to Statistical Techniques', 'https://youtu.be/1mqXu3eXylI', 1),
+  ('LEC12', 10, 'Data Validation Methods', 'https://youtu.be/1mqXu3eXylI', 2);
 
 
 ---------------------------- (10) Create a bunch of mock assignments for each module  --------------------------
 -- Assignments for Module 2 (id: 7)
-INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score)
+INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score, sequence_number)
 VALUES 
-  ('ASGMT201', 7, 'Measurement Fundamentals', 10),
-  ('ASGMT202', 7, 'Report: Sensor Calibration', 15),
-  ('ASGMT203', 7, 'Future of Metrology', 20);
+  ('ASGMT201', 7, 'Measurement Fundamentals', 10, 1),
+  ('ASGMT202', 7, 'Report: Sensor Calibration', 15, 2),
+  ('ASGMT203', 7, 'Future of Metrology', 20, 3);
 
 -- Assignments for Module 3 (id: 8)
-INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score) VALUES
-  ('ASGMT07', 8, 'Measurement Device Report', 10),
-  ('ASGMT08', 8, 'Calibration Lab Exercise', 15);
+INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score, sequence_number) VALUES
+  ('ASGMT07', 8, 'Measurement Device Report', 10, 1),
+  ('ASGMT08', 8, 'Calibration Lab Exercise', 15, 2);
 
 -- Assignments for Module 4 (id: 9)
-INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score) VALUES
-  ('ASGMT09', 9, 'Uncertainty Analysis Worksheet', 10),
-  ('ASGMT10', 9, 'Traceability Case Study', 15);
+INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score, sequence_number) VALUES
+  ('ASGMT09', 9, 'Uncertainty Analysis Worksheet', 10, 1),
+  ('ASGMT10', 9, 'Traceability Case Study', 15, 2);
 
 -- Assignments for Module 5 (id: 10)
-INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score) VALUES
-  ('ASGMT11', 10, 'Data Set Analysis', 15),
-  ('ASGMT12', 10, 'Statistical Report', 20);
-UPDATE assignment_questions SET correct_answer = '["common", "cause", "natural", "special", "unusual"]'::jsonb
-WHERE question_text = 'Describe the difference between common cause and special cause variation.';
+INSERT INTO course_assignments (assignment_id, module_id, assignment_title, max_score, sequence_number) VALUES
+  ('ASGMT11', 10, 'Data Set Analysis', 15, 1),
+  ('ASGMT12', 10, 'Statistical Report', 20, 2);
 
--- UPDATE student information to include a history toggle
-ALTER TABLE student_information ADD COLUMN history_enabled BOOLEAN DEFAULT TRUE;
 
+---------------------------- (10) Create a bunch of mock questions for each assignment  --------------------------
+-- ASGMT201 - Measurement Fundamentals (10 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT201', 'Which of the following defines metrology?', 'multiple_choice',
+ '{"choices": ["The study of time", "The science of measurement", "A measuring device", "Data analysis"], "answer": "The science of measurement"}'::jsonb,
+ '"The science of measurement"'::jsonb, 5),
+
+('ASGMT201', 'Explain the importance of measurement in scientific research.', 'text',
+ NULL, '["measurement", "accuracy", "repeatable"]'::jsonb, 5);
+
+-- ASGMT202 - Report: Sensor Calibration (15 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT202', 'Which condition is most likely to affect sensor calibration?', 'multiple_choice',
+ '{"choices": ["High temperature", "Stable humidity", "Direct sunlight", "Low pressure"], "answer": "High temperature"}'::jsonb,
+ '"High temperature"'::jsonb, 5),
+
+('ASGMT202', 'Describe how to perform a basic sensor calibration.', 'text',
+ NULL, '["reference", "adjustment", "standard"]'::jsonb, 5),
+
+('ASGMT202', 'True or False: Calibration increases measurement error.', 'multiple_choice',
+ '{"choices": ["True", "False"], "answer": "False"}'::jsonb,
+ '"False"'::jsonb, 5);
+
+-- ASGMT203 - Future of Metrology (20 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT203', 'What is quantum metrology used for?', 'multiple_choice',
+ '{"choices": ["Calibrating tools", "Analyzing trends", "Precise atomic-level measurements", "Teaching lab work"], "answer": "Precise atomic-level measurements"}'::jsonb,
+ '"Precise atomic-level measurements"'::jsonb, 5),
+
+('ASGMT203', 'Describe a future trend in metrology that involves AI.', 'text',
+ NULL, '["automation", "AI", "data-driven"]'::jsonb, 5),
+
+('ASGMT203', 'What challenge does space metrology face the most?', 'multiple_choice',
+ '{"choices": ["Zero gravity", "Sunlight", "Atmosphere", "Weightlessness"], "answer": "Zero gravity"}'::jsonb,
+ '"Zero gravity"'::jsonb, 5),
+
+('ASGMT203', 'Explain how smart sensors will affect metrology in the next decade.', 'text',
+ NULL, '["smart", "adaptive", "integration"]'::jsonb, 5);
+
+-- ASGMT07 - Measurement Device Report (10 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT07', 'Which device is best suited for small internal measurements?', 'multiple_choice',
+ '{"choices": ["Caliper", "Micrometer", "Ruler", "Laser scanner"], "answer": "Micrometer"}'::jsonb,
+ '"Micrometer"'::jsonb, 5),
+
+('ASGMT07', 'Explain the term "precision" in measurement.', 'text',
+ NULL, '["repeatability", "close", "consistency"]'::jsonb, 5);
+
+-- ASGMT08 - Calibration Lab Exercise (15 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT08', 'What is the first step in any calibration procedure?', 'multiple_choice',
+ '{"choices": ["Document results", "Set reference", "Adjust output", "Turn off device"], "answer": "Set reference"}'::jsonb,
+ '"Set reference"'::jsonb, 5),
+
+('ASGMT08', 'Describe a source of calibration error.', 'text',
+ NULL, '["environment", "operator", "instrument"]'::jsonb, 5),
+
+('ASGMT08', 'True or False: Calibration requires a traceable standard.', 'multiple_choice',
+ '{"choices": ["True", "False"], "answer": "True"}'::jsonb,
+ '"True"'::jsonb, 5);
+
+-- ASGMT09 - Uncertainty Analysis Worksheet (10 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT09', 'What does measurement uncertainty describe?', 'multiple_choice',
+ '{"choices": ["Measurement tool size", "Deviation from exact", "Randomness", "Precision"], "answer": "Deviation from exact"}'::jsonb,
+ '"Deviation from exact"'::jsonb, 5),
+
+('ASGMT09', 'Why must uncertainty be included in measurement reports?', 'text',
+ NULL, '["accuracy", "limits", "interpretation"]'::jsonb, 5);
+
+-- ASGMT10 - Traceability Case Study (15 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT10', 'Traceability refers to...', 'multiple_choice',
+ '{"choices": ["Visibility of results", "Step-by-step instruction", "Link to standards", "Measurement repeatability"], "answer": "Link to standards"}'::jsonb,
+ '"Link to standards"'::jsonb, 5),
+
+('ASGMT10', 'Explain how traceability builds confidence in results.', 'text',
+ NULL, '["standard", "verified", "reproducible"]'::jsonb, 5),
+
+('ASGMT10', 'True or False: Traceability includes only national standards.', 'multiple_choice',
+ '{"choices": ["True", "False"], "answer": "False"}'::jsonb,
+ '"False"'::jsonb, 5);
+
+-- ASGMT11 - Data Set Analysis (15 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT11', 'Which of the following defines standard deviation?', 'multiple_choice',
+ '{"choices": ["Mean", "Spread", "Middle value", "Peak"], "answer": "Spread"}'::jsonb,
+ '"Spread"'::jsonb, 5),
+
+('ASGMT11', 'Explain why analyzing outliers is important.', 'text',
+ NULL, '["bias", "error", "impact"]'::jsonb, 5),
+
+('ASGMT11', 'True or False: More outliers always mean better results.', 'multiple_choice',
+ '{"choices": ["True", "False"], "answer": "False"}'::jsonb,
+ '"False"'::jsonb, 5);
+
+-- ASGMT12 - Statistical Report (20 pts)
+INSERT INTO assignment_questions (assignment_id, question_text, question_type, options, correct_answer, max_points) VALUES
+('ASGMT12', 'Histograms show...', 'multiple_choice',
+ '{"choices": ["Counts", "Frequency distribution", "Rankings", "Total"], "answer": "Frequency distribution"}'::jsonb,
+ '"Frequency distribution"'::jsonb, 5),
+
+('ASGMT12', 'Why is sample size important in statistics?', 'text',
+ NULL, '["confidence", "reliability", "representation"]'::jsonb, 5),
+
+('ASGMT12', 'Which test compares two means?', 'multiple_choice',
+ '{"choices": ["ANOVA", "Chi-square", "t-test", "F-test"], "answer": "t-test"}'::jsonb,
+ '"t-test"'::jsonb, 5),
+
+('ASGMT12', 'Define p-value and its role in hypothesis testing.', 'text',
+ NULL, '["probability", "null", "significance"]'::jsonb, 5);
