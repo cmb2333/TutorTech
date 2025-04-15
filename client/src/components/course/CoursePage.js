@@ -163,7 +163,7 @@ function CoursePage() {
       <div className="course-page d-flex">
 
         {/* ---------- Left Section: Course Content ---------- */}
-        <div className="course-info flex-grow-1 p-3" data-aos="slide-down" data-aos-delay="200">
+        <div className="course-info flex-grow-1 p-3">
           {course ? (
             <>
               {/* ---------- Section: Course Home ---------- */}
@@ -241,7 +241,7 @@ function CoursePage() {
         </div>
 
         {/* ------------------ Right Section: AI Bot Sidebar ------------------ */}
-        <div className="bot-section" id="botSidebar" data-aos="slide-left" data-aos-delay="200">
+        <div className="bot-section" id="botSidebar">
           
           {/* Dropdown to select the bot type */}
           <label className="bot-label">

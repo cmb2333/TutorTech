@@ -5,6 +5,7 @@ import { useUser } from '../context/UserContext';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import Grades from './Grades';
+import "./styles/Dashboard.css"
 
 function Dashboard() {
   const [courses, setCourses] = useState([]);
@@ -49,63 +50,66 @@ function Dashboard() {
     return(
         <div className='Dashboard'>
             <Row>
-                <Col md={3} data-aos="slide-right" data-aos-delay="200">
-                <h1>Welcome</h1>
-                    <Container className='Profile'>
-                        <Card className="profile-card">
-                            <Card.Img
-                            variant="top"
-                            src="/assets/louie-icon.png"
-                            className='profile-img'
-                            />
-                            <Card.Body className='d-flex flex-column align-items-center'>
-                                <Card.Title>{user.first_name} {user.last_name}</Card.Title>
-                                <Link
-                                    to="/learning-style-quiz"
-                                    className="learning-style-button mt-3"
-                                    style={{ maxWidth: '220px' }}
-                                >
-                                    {hasPreferences ? "Custom Learning Style" : "Create Your Custom Learning Style"}
-                                </Link>
-                            </Card.Body>
-                            <Form className="mt-3">
-                            {user && (
-                                <Form.Check
-                                    type="switch"
-                                    id="history-toggle"
-                                    label="Enable Chat History & Semantic Search"
-                                    checked={user.history_enabled}
-                                    onChange={async () => {
-                                    const updated = !user.history_enabled;
-                                    const res = await fetch(`${process.env.REACT_APP_API_URL}/update-history-setting`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                        user_id: user.user_id,
-                                        history_enabled: updated,
-                                        }),
-                                    });
-
-                                    if (res.ok) {
-                                        setUser({ ...user, history_enabled: updated });
-                                    }
-                                    }}
+                <Col md={3}>
+                    <div className='profile-section'>
+                        <div className='user-section'>
+                            <div className="profile-avatar">
+                                <img
+                                variant="top"
+                                src="../assets/newLogo.png"
+                                className='profile-img'
                                 />
-                            )}
-                                <p className="text-muted small">
-                                    Enabling history may slightly slow down the bot. Data is only used within this platform.
-                                </p>
-                                </Form>
-                        </Card>
-                    </Container>
+                            </div>
+                        </div>
+                        <h2>{user.first_name} {user.last_name}</h2>
+                        <Container className='learning-style-panel d-flex flex-column align-items-center'>
+                            <Link
+                                to="/learning-style-quiz"
+                                className="learning-style-button mt-3"
+                                style={{ maxWidth: '100%' }}
+                            >
+                                {hasPreferences ? "Custom Learning Style" : "Create Your Custom Learning Style"}
+                            </Link>
+                            <Form className="w-100 mt-2">
+                                    {user && (
+                                        <Form.Check
+                                            type="switch"
+                                            id="history-toggle"
+                                            label="Enable Chat History & Semantic Search"
+                                            checked={user.history_enabled}
+                                            onChange={async () => {
+                                            const updated = !user.history_enabled;
+                                            const res = await fetch(`${process.env.REACT_APP_API_URL}/update-history-setting`, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                user_id: user.user_id,
+                                                history_enabled: updated,
+                                                }),
+                                            });
+
+                                            if (res.ok) {
+                                                setUser({ ...user, history_enabled: updated });
+                                            }
+                                            }}
+                                        />
+                                    )}
+                                    <p className="text-muted small mt-2">
+                                        Enabling history may slightly slow down the bot. Data is only used within this platform.
+                                    </p>
+                            </Form>
+                        </Container>
+                    </div>
+            
                 </Col>
-                <Col data-aos="slide-left" data-aos-delay="200">
-                <h1>Courses</h1>
+                <Col>
+
                     <Container className='UserCourses'>
+                    <h1>Courses</h1>
                         <Row>
                             {courses.map((course, index) => (
-                            <Col md={4} key={index} className="mb-4">
-                                <Link to={`/courses/${course.course_code}`}>
+                            <Col md={3} key={index}>
+                                <Link to={`/courses/${course.course_code}`}style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <Card className="course-card h-100">
                                     <Card.Img
                                     variant="top"
@@ -137,17 +141,15 @@ function Dashboard() {
                 </Col>
             </Row>
 
-            <Row>
-                <Container className='Analysis' data-aos="slide-up" data-aos-delay="200">
+            <Row className='Analysis gx-4 gy-3 mt-2'>
+                <Col md={5} className="analysis-panel">
                     <h1>Analysis</h1>
-                    <p>Course Activity - Create dynamic radar chart showing time spent on courses</p>
-                </Container>
-            </Row>
-            <Row>
-                {/* Grades section */}
-                <Container className='Grades' data-aos="slide-up" data-aos-delay="100">
+                    <p>Include radar charts, line graphs, performance summaries, etc.</p>
+                </Col>
+                <Col md={5} className='grades-section'>
+                    <h1>Grades</h1>
                     <Grades userId={user?.user_id}/>
-                </Container>
+                </Col>
             </Row>
 
         </div>

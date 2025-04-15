@@ -18,7 +18,7 @@ function Home() {
   }, []);
 
   return (
-    <div>
+    <div className='home-page'>
       <section className="banner">
         <Container className='banner-text'>
           <h1 className="display-4" data-aos="fade-up" data-aos-delay="200">
@@ -27,7 +27,6 @@ function Home() {
           </h1>
         </Container>
       </section>
-    
 
       <section className='current-landscape-section'>
         <Container className='py-5 text-center'>
@@ -66,6 +65,35 @@ function Home() {
             </Card>
           </CardGroup>
         </Container>
+      </section>
+
+      <section className='ai-integration-section'>
+
+      {/* ----------- Left Side: Robot + Heading ----------- */}
+      <div className='robot-proposal'>
+        <h1>AI that understands <br /> how you learn</h1>
+        <img 
+          src='/assets/newLogo.png' 
+          alt='Friendly AI robot' 
+          className='robot-img'
+        />
+      </div>
+
+      {/* ----------- Right Side: Mission Description ----------- */}
+      <div className='solution-description'>
+        <h2>Our Personalized Solution</h2>
+        <p>
+          TutorTech integrates AI to help students master material 
+          in a way that fits their learning style. Whether you 
+          prefer step-by-step guidance, or want a co-learner by your side — 
+          our chatbot adapts to you.
+        </p>
+        <p>
+          With real-time feedback, interactive course modules, and adaptive tutoring, 
+          this isn’t just a platform — it’s your personal learning companion.
+        </p>
+      </div>
+
       </section>
 
       <section className='why-MRTL-section'>

@@ -87,8 +87,7 @@ function Grades({ userId, filterCourse, onAssignmentSelect }) {
     /* -------------------- Render: Grades Table -------------------- */
     return (
         // TODO: group grades by assignment type (quiz, project, homework)
-        <Container className='Grades' data-aos="slide-up" data-aos-delay="100">
-            <h2>Grades</h2>
+        <Container className='Grades'>
 
             {/* table of assignment scores */}
             <Table striped bordered hover>
