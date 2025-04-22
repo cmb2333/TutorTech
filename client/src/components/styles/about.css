@@ -5,7 +5,7 @@
 }
 
 .about-body {
-    background-color: #f9f9f9;
+    background-color: white;
     padding: 30px 0;
 }
 
@@ -21,10 +21,20 @@
 }
 
 .about-1 p {
-    text-align: center;
+    background-color: white;
     color: black;
-    padding: 3px;
+    padding: 16px 24px;
+    border: 2px solid black;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    width: calc(250px * 4 + 60px);
+    max-width: 100%;
+    margin: 20px auto;
+    text-align: center;
 }
+
+
 
 .about-container {
     display: flex;
@@ -35,12 +45,15 @@
 
 .about-item {
     background-color: white;
+    color: #003466;
     padding: 40px;
-    width: 300px;  /* Ensures equal sizing */
+    width: 250px;  /* Ensures equal sizing */
     text-align: center;
+    border: 2px solid black !important;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     transition: all 0.4s ease-in-out;
+    margin-top: 20px;
 }
 
 
@@ -52,14 +65,14 @@
 .about-item hr {
     width: 46px;
     height: 3px;
-    background-color: #FFD200;
+    background-color: white;
     margin: 10px auto; 
     border: none;
 }
 
 .about-item p {
     margin-top: 20px;
-    color: black;
+    color: #003466;
     transition: color 0.4s ease-in-out;
 }
 
@@ -70,7 +83,7 @@
 }
 
 .about-item ul li {
-    color: black;
+    color: #003466;
     transition: color 0.4s ease-in-out;
     margin-bottom: 10px; /* Spacing between list items */
 }
@@ -78,7 +91,7 @@
 /* Hover Effects */
 .about-item:hover {
     background-color: var(--primary-color);
-    color: white;
+    color: #fac01a;
 }
 
 .about-item:hover i,
