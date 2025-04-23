@@ -26,14 +26,18 @@ const Footer = () => {
           {/* Location Section */}
           <div className="col-md-4">
             <h5>Location</h5>
-            <p>123 University Ave, Flagstaff, AZ 86001</p>
+            <p>Bldg #98E, South Engineering Lab <br />
+            560 E Pine Knoll Drive <br />
+            Flagstaff AZ 86011 <br />
+            United States </p>
           </div>
 
           {/* Contact Info Section */}
           <div className="col-md-4">
             <h5>Contact Info</h5>
-            <p>Email: support@tutortech.com</p>
-            <p>Phone: +1 (555) 123-4567</p>
+            <p>Email: MRTL@nau.edu</p>
+            <p><a href="https://ac.nau.edu/~jw2575/" target="_blank" rel="noopener noreferrer" className="text-light">MRTL Website</a></p>
+            <p>Phone: 928/523-7079</p>
           </div>
 
           {/* Common Links Section */}
@@ -41,7 +45,9 @@ const Footer = () => {
             <h5>Quick Links</h5>
             <ul className="list-unstyled">
               <li><a href="/" className="text-light">Home</a></li>
+              <li><a href="/courses" className="text-light">Courses</a></li>
               <li><a href="/about" className="text-light">About Us</a></li>
+              <li><a href="/contact" className="text-light">Contact</a></li>
             </ul>
           </div>
         </div>
