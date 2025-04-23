@@ -150,7 +150,7 @@ body {
   padding: 0.5rem;
   border-radius: 10px;
   border: 2px solid #fff;
-  background-color: #FFD200;
+  background-color: var(--secondary-color);
 }
 
 .landscape-card {
