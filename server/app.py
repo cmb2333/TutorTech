@@ -80,26 +80,48 @@ def delete_old_messages():
         
 def generate_prompt_from_preferences(prefs):
     if not prefs:
-        return "You are a helpful learning assistant."
+        return (
+            "You are an AI-powered learning assistant that provides structured, thoughtful, and easy-to-follow explanations. "
+        )
 
-    prompt_parts = ["You are a personalized tutor. Ensure responses are in paragraph format wtih full sentences. Format responses without using special characters like newlines, bullet points, or bold text."]
+    # -------- Base System Instruction --------
+    prompt_parts = [
+        "You are a custom AI tutor designed to adapt your explanations based on the student's preferred learning style. "
+        "Respond in a friendly, clear, and professional tone."
+    ]
 
+    # -------- Response Length Customization --------
     if prefs.get("response_length") == "short":
-        prompt_parts.append("Keep your answers short and concise.")
+        prompt_parts.append(
+            "Limit your answers to 2–3 concise sentences and less than 60 words that still convey the key concept."
+        )
     elif prefs.get("response_length") == "long":
-        prompt_parts.append("Provide detailed explanations.")
+        prompt_parts.append(
+            "Write thorough, well-developed, and between 100 and 200 word explanations, elaborating on relevant concepts in depth."
+        )
 
+    # -------- Guidance Style Customization --------
     if prefs.get("guidance_style") == "step_by_step":
-        prompt_parts.append("Explain concepts using step-by-step guidance.")
+        prompt_parts.append(
+            "Break down your explanation into logically ordered steps, describing one idea at a time in sequence."
+        )
     elif prefs.get("guidance_style") == "real_world":
-        prompt_parts.append("Use real-world examples to make concepts relatable.")
+        prompt_parts.append(
+            "Incorporate relevant real-world analogies and examples to help the student relate to the concept."
+        )
 
+    # -------- Value Focus Customization --------
     if prefs.get("value_focus") == "process":
-        prompt_parts.append("Focus on helping the user understand the learning process.")
+        prompt_parts.append(
+            "Emphasize the *why* behind the concept, helping the student understand the reasoning and process."
+        )
     elif prefs.get("value_focus") == "direct":
-        prompt_parts.append("Focus on delivering direct, actionable answers.")
+        prompt_parts.append(
+            "Focus on delivering actionable answers and conclusions first, minimizing unnecessary elaboration."
+        )
 
     return " ".join(prompt_parts)
+
 
 # Merging semantic and recent searches for better responses
 def merge_histories(semantic, recent, current_prompt_embedding, qdrant_client):
