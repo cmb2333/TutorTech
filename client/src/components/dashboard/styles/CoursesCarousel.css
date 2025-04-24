@@ -1,0 +1,179 @@
+/* ---------------------------- Carousel Wrapper ---------------------------- */
+
+.user-courses-wrapper {
+  position: relative;                  /* anchors absolute-positioned arrows */
+  padding: 1.5rem 1rem;
+  border-radius: 20px;
+  margin-top: 2rem;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+  overflow: visible;                  /* ensure arrows aren’t clipped */
+}
+
+
+/* ---------------------------- Carousel Container ---------------------------- */
+
+.carousel-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2rem;
+  overflow: visible;
+}
+
+.carousel-inner-wrapper {
+  width: calc(100% - 100px);          /* leaves space for arrows on each side */
+  overflow: visible;
+}
+
+.carousel-with-arrows {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-with-arrows .react-multi-carousel-list {
+  width: 100%;
+  overflow: visible !important;       /* allow arrows outside boundaries */
+  padding: 0 40px;                    /* visual buffer for arrows */
+  position: relative;
+}
+
+
+/* ---------------------------- Card Slide Item ---------------------------- */
+
+.react-multi-carousel-item {
+  padding: 0;                         /* internal card spacing is handled by margin */
+}
+
+.course-slide-spacing {
+  margin: 0 8px;                      /* spacing between cards (16px total) */
+  height: 100%;
+}
+
+
+/* ---------------------------- Course Link & Card ---------------------------- */
+
+.course-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.course-link .course-card {
+  width: 100%;
+  height: 280px;
+  border-radius: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background: #0a1826;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.course-card img {
+  height: 130px;
+  width: 100%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.course-card .card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1rem;
+  flex-grow: 1;
+  background: rgb(0 42 82 / 25%);
+  backdrop-filter: blur(38px);
+  box-shadow: 0 40px 30px rgb(0 0 0 / 10%);
+}
+
+.course-card .card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.3;
+  margin: 0;
+  min-height: 2.6em;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ---------------------------- Carousel Arrows ---------------------------- */
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--secondary-color);
+  border-radius: 50%;
+  padding: 0.5rem;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000 !important;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.carousel-arrow span {
+  font-size: 28px;
+  color: var(--primary-color);
+  transition: color 0.3s ease;
+}
+
+.carousel-arrow:hover {
+  transform: translateY(-50%) scale(1.15);
+}
+
+.carousel-arrow:hover span {
+  color: #ffffff;
+}
+
+.carousel-arrow.left {
+  left: -5px;
+}
+
+.carousel-arrow.right {
+  right: -5px;
+}
+
+/* ------------------- Course Progress Bar Styling ------------------- */
+.course-card .progress {
+  height: 15px;
+  background-color: rgba(255, 255, 255, 0.15); /* soft backdrop on light card */
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.course-card .progress-bar {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0 6px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  background-color: #3fb950 !important; /* GitHub-style green */
+}

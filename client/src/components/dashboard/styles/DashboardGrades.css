@@ -1,0 +1,88 @@
+/* ---------------------------- Dashboard Grades Layout ---------------------------- */
+/* Styles for outer container wrapping all grades */
+.dashboard-grades {
+    margin-top: 2rem;
+    padding: 1rem;
+  }
+  
+  
+  /* ---------------------------- Accordion Custom Styling ---------------------------- */
+  /* Customize the appearance of accordion headers (collapsed and expanded) */
+  .dashboard-grades .accordion-button {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #003366;
+    padding: 0.75rem 1rem;
+    transition: background-color 0.2s;
+    background: rgb(0 42 82 / 25%);
+  }
+  
+  /* Change background color when the accordion is expanded */    
+  .dashboard-grades .accordion-button:not(.collapsed) {
+    background-color: #d4e4f2;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.125);
+  }
+  
+  /* Accordion body styling */
+  .dashboard-grades .accordion-body {
+    padding: 0.75rem 1rem;
+    border-radius: 0 0 10px 10px;
+    background: rgb(0 42 82 / 25%);
+    backdrop-filter: blur(30px);
+    box-shadow: 0 30px 24px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Accordion item (card) styling */
+  .dashboard-grades .accordion-item {
+    border: none;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 16px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+  }
+  
+  
+  /* ---------------------------- Grade Table Styling ---------------------------- */
+/* Table container: adds spacing and rounds edges */
+.dashboard-grades .table {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    
+  }
+  
+  /* Table headers: sticky + style */
+  .dashboard-grades thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+  }
+  
+  /* Table cells */
+  .dashboard-grades td {
+    padding: 0.5rem 0.75rem;
+    vertical-align: middle;
+  }
+
+  /* ---------------------------- Score Color Coding ---------------------------- */
+  /* Used to visually highlight individual assignment scores and course averages */
+  .score-green {
+    color: #3fb950;
+    font-weight: bold;
+  }
+  
+  .score-yellow {
+    color: #f1c40f;
+    font-weight: bold;
+  }
+  
+  .score-red {
+    color: #e74c3c;
+    font-weight: bold;
+  }
+  

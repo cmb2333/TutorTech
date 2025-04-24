@@ -649,10 +649,28 @@ def chat():
 
         # Choose system message
         bot_prompts = {
-            "Tutor": "Provide structured, step-by-step explanations in full sentences without using special characters like newlines, bullet points, or bold text. Keep explanations concise, ensuring readability in a continuous paragraph format. Encourage follow-up questions for further elaboration.",
-            "Mentor": "Combine concise answers with practical steps and or real-life examples where applicable. Maintain a balance between elaboration and clarity. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
-            "Co-Learner": "Provide quick, digestible answers that summarize key points without excessive detail. Your tone should be friendly, casual, and straight to the point. Provide quick definitions describing only the most important facts. Ensure responses are in full sentences without using special characters like newlines, bullet points, or bold text.",
+            "Tutor": (
+                "You are a patient and knowledgeable tutor. Respond with detailed, structured explanations in clear, continuous paragraphs. "
+                "Use newlines and bulletpoints to separate major ideas and keep responses visually readable. Your tone should be warm, professional, and supportive. "
+                "Use a numbered list when describing a process or sequential steps."
+                "Each explanation should be between 100 and 150 words. Break down complex concepts step-by-step using plain English. "
+                "Avoid jargon unless necessary, and define any advanced terms briefly. Encourage the student to ask follow-up questions for clarity."
+            ),
+
+            "Mentor": (
+                "You are a career mentor offering guidance with practical insight. Your responses should combine brief explanations with real-world relevance, "
+                "such as examples, analogies, or action-oriented suggestions. Use concise paragraphs or lists to outline practical steps. Separate ideas with newlines, and format your response for easy readability. "
+                "Keep the response concise but substantial — between 80 and 120 words. Use a tone that is confident, conversational, and motivational. "
+                "When relevant, help the learner understand how the knowledge applies beyond academics, and prompt them to reflect or take next steps."
+            ),
+
+            "Co-Learner": (
+                "You are a peer learning alongside the user. Keep your answers short, casual, and approachable, summarizing only the essential points of a concept. "
+                "Write in a friendly and informal tone, like a classmate explaining something over coffee. Keep it short and friendly. Use quick lists or short lines to explain ideas clearly. Use newlines to break things up when helpful. "
+                "Limit your responses to 40–60 words to maintain a fast, digestible pace. When appropriate, relate to the learner by sharing curiosity or inviting them to explore more together."
+            )
         }
+
 
         # Fecth the users custom learning preference
         if bot_type == "Custom":
@@ -1202,48 +1220,191 @@ def get_assignment_results(assignment_id):
 # Route: /api/grades/<user_id>
 # Method: GET
 # Purpose:
-#   - Return final grades for all assignments for a user
-#   - Each row includes assignment, course, and module context
+#   - Return all assignment grades for a user
+#   - Include course title and module info
+#   - Add computed course_average per assignment row
 # -----------------------------------------------------------------------------------
 @app.route('/api/grades/<user_id>', methods=['GET'])
 def get_grades(user_id):
     try:
+        # ----------------------- Connect and create cursor -----------------------
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # query for course + assignment + module info
+        # ----------------------- Fetch all user assignments -----------------------
         query = """
+        -- Get all assignments for the user, including course and module info, and the user's score
+
         SELECT 
-            g.assignment_id,
-            ca.assignment_title,
-            g.course_code,
-            g.score,
-            g.max_score,
-            cm.module_sequence,
-            cm.module_title
-        FROM grades g
-        JOIN course_assignments ca ON g.assignment_id = ca.assignment_id
+            ca.assignment_id,               -- Unique ID of the assignment
+            ca.assignment_title,            -- Title of the assignment
+            cm.course_code,                 -- Course code it belongs to
+            c.course_title,                 -- Full title of the course
+            g.score,                        -- The student's score
+            g.max_score,                    -- The total possible score for the assignment
+            cm.module_sequence,            -- Which module this assignment appears in
+            cm.module_title                -- Name of the module
+        FROM course_assignments ca
+
+        -- Join modules to match each assignment with the correct module
         JOIN course_modules cm ON ca.module_id = cm.id
-        WHERE g.user_id = %s
+
+        -- Join course info to include course titles
+        JOIN course_information c ON cm.course_code = c.course_code
+
+        -- Optionally join grades (LEFT JOIN allows for assignments with no score yet)
+        LEFT JOIN grades g ON ca.assignment_id = g.assignment_id AND g.user_id = %s
+
+        -- Sort assignments in module order, then alphabetically by assignment
         ORDER BY cm.module_sequence, ca.assignment_title;
+
         """
         cursor.execute(query, (user_id,))
-        results = cursor.fetchall()
+        results = cursor.fetchall() # list of assignments with optional scores
 
-        # pass everything back to frontend
+        # ----------------------- Fetch total scores per course -----------------------
+        course_totals_query = """
+        -- Get total points earned and total points possible per course for this user
+
+        SELECT 
+            course_code,                           -- Group results by course
+            SUM(score) AS total_score,            -- Total points the student earned across assignments
+            SUM(max_score) AS total_max           -- Total possible points across those assignments
+        FROM grades
+        WHERE user_id = %s                         -- Only include this user's grades
+        GROUP BY course_code;                      -- One row per course
+        
+        """
+        cursor.execute(course_totals_query, (user_id,))
+        totals = cursor.fetchall() # aggregate scores per course
+
+        # ----------------------- Compute per-course averages -----------------------
+        course_averages = {
+            row['course_code']: round((row['total_score'] / row['total_max']) * 100, 2)
+            for row in totals if row['total_max'] > 0
+        }
+
+         # -------------- Attach course_average to each assignment row --------------
+        for row in results:
+            course_code = row.get('course_code')
+            row['course_average'] = float(course_averages.get(course_code)) if course_code in course_averages else None
+
+        # return enhanced results
         return jsonify(results)
 
+    # ----------------------- Error Handling -----------------------
     except psycopg2.Error as e:
         print(f"Database error: {e.pgcode} - {e.pgerror}")
         return jsonify({"error": "Database error occurred"}), 500
     except Exception as e:
         print(f"General error: {str(e)}")
         return jsonify({"error": "Failed to fetch grades"}), 500
+    
+    # ----------------------- Connection Close -----------------------
     finally:
         if conn:
             conn.close()
 
 
+# ----------------------------- Get Course Progress by User -----------------------------
+# Route: /api/course-progress/<user_id>
+# Method: GET
+# Purpose:
+#   - Calculate percentage of completed assignments per course for a given user
+#   - Progress = (completed assignments / total assignments) * 100
+# ---------------------------------------------------------------------------------------
+@app.route('/api/course-progress/<user_id>', methods=['GET'])
+def course_progress(user_id):
+
+    # ----------------------- Connect and create cursor -----------------------
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # ----------------------- Progress query per course -----------------------
+    cursor.execute("""
+    -- Calculate how much of each course the user has completed, based on graded assignments
+    
+    SELECT
+        c.course_code,                                              -- Course identifier
+        ROUND(                                                      -- Round the percentage to 2 decimal places
+            ( 
+              COUNT(CASE WHEN g.score IS NOT NULL THEN 1 END)::numeric  -- Count only assignments that have a score
+              / 
+              COUNT(ca.assignment_id)                               -- Total number of assignments in the course
+            ) * 100,
+            2
+        ) AS progress                                               -- Final result percentage :of assignments completed
+    FROM course_information c
+                   
+    -- Link user enrollments to the course
+    JOIN enrollments e ON c.course_code = e.course_code
+                   
+    -- Get all modules for that course
+    JOIN course_modules cm ON cm.course_code = c.course_code
+                   
+    -- Get all assignments in those modules
+    JOIN course_assignments ca ON ca.module_id = cm.id
+                   
+    -- Include grades (may be NULL if not graded yet)
+    LEFT JOIN grades g ON g.assignment_id = ca.assignment_id AND g.user_id = %s
+                   
+    -- Only consider courses the user is enrolled in
+    WHERE e.user_id = %s
+    GROUP BY c.course_code;
+
+    """, (user_id, user_id))
+    data = cursor.fetchall()
+    conn.close()
+
+    return jsonify(data)
+
+
+
+# ----------------------------- Get Completion Counts for User -----------------------------
+# Route: /api/completion-counts/<user_id>
+# Method: GET
+# Purpose:
+#   - Return a summary count of completed and total assignments
+#   - Used for pie charts and dashboard analysis
+# -----------------------------------------------------------------------------------------
+@app.route('/api/completion-counts/<user_id>', methods=['GET'])
+def completion_counts(user_id):
+    try:
+        # ----------------------- Connect and create cursor -----------------------
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # ----------------------- Count completed vs total assignments -----------------------
+        query = """
+        -- Count how many total assignments exist and how many have been completed (graded) for this user
+        
+        SELECT
+            COUNT(*) FILTER (WHERE g.score IS NOT NULL) AS completed,   -- Only count assignments with a non-null score
+            COUNT(*) AS total                                            -- Count all assignments the user should complete
+        FROM course_assignments ca
+
+        -- Link each assignment to its module
+        JOIN course_modules cm ON ca.module_id = cm.id
+
+        -- Only include assignments in courses the user is enrolled in
+        JOIN enrollments e ON cm.course_code = e.course_code
+
+        -- Link grades to the current user
+        LEFT JOIN grades g ON g.assignment_id = ca.assignment_id AND g.user_id = %s
+
+        -- Only include courses the user is enrolled in
+        WHERE e.user_id = %s;
+
+        """
+        cursor.execute(query, (user_id, user_id))
+        result = cursor.fetchone()
+        conn.close()
+        return jsonify(result)
+    
+    # ----------------------- Catch and report errors -----------------------
+    except Exception as e:
+        print("Error fetching completion counts:", e)
+        return jsonify({"error": "Failed to fetch data"}), 500
 
 
 if __name__ == "__main__":

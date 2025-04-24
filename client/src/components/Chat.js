@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 function Chat({ botType, courseId, userId, externalPrompt, historyEnabled }) {
   const [messages, setMessages] = useState([]);
@@ -116,8 +117,30 @@ function Chat({ botType, courseId, userId, externalPrompt, historyEnabled }) {
 
         {/* Render each message in chat history */}
         {messages.map((message, index) => (
+
+          // outer container styled by message sender class (e.g., "user" or "ai")
           <div key={index} className={`chat-message ${message.sender}`}>
-            <div className="message-bubble">{message.text}</div>
+
+            {/* inner bubble for visual message styling */}
+            <div className="message-bubble">
+              
+              {/* render message content using ReactMarkdown for formatting support */}
+              <ReactMarkdown
+                components={{
+                  p: ({ node, ...props }) => (
+                    <p style={{ marginBottom: '0.5rem' }} {...props} />
+                  ),
+                }}
+              >
+                {typeof message.text === 'string'
+                  ? message.text                  // render directly if it's already a plain string
+                  : Array.isArray(message.text)
+                    ? message.text.join('\n')     // if it's an array of strings, join with newlines
+                    : String(message.text || '')  // fallback to empty string or convert safely
+                }
+              </ReactMarkdown>
+
+            </div>
           </div>
         ))}
 

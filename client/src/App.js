@@ -10,7 +10,7 @@ import Chat from './components/Chat';
 import { CoursePage } from './components/course';
 import Courses from './components/Courses';
 import Signup from './components/Signup';
-import Dashboard from './components/Dashboard';
+import Dashboard from './components/dashboard/Dashboard';
 import Profile from './components/Profile';
 import Contact from './components/Contact';
 import LearningStyleQuiz from './components/LearningStyleQuiz';
