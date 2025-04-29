@@ -8,6 +8,11 @@ function Chat({ botType, courseId, userId, externalPrompt, historyEnabled }) {
   const [isTyping, setIsTyping] = useState(false);
   const messagesContainerRef = useRef(null);
 
+  const systemBubbleStyle = {
+    backgroundColor: '#ffeeba',
+    color: '#856404',
+    fontWeight: 'bold'
+  };  
 
   // ---------- Scroll Chat to Bottom ----------
   // Scrolls the chat container to the bottom so newest message is visible
@@ -128,7 +133,10 @@ function Chat({ botType, courseId, userId, externalPrompt, historyEnabled }) {
           <div key={index} className={`chat-message ${message.sender}`}>
 
             {/* inner bubble for visual message styling */}
-            <div className="message-bubble">
+            <div
+              className="message-bubble"
+              style={message.sender === 'system' ? systemBubbleStyle : {}}
+            >
               
               {/* render message content using ReactMarkdown for formatting support */}
               <ReactMarkdown
