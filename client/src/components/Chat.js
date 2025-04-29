@@ -53,7 +53,7 @@ function Chat({ botType, courseId, userId, externalPrompt, historyEnabled }) {
   // Sends user or system message to the backend and stores AI's response
   const sendToBot = async (promptText) => {
     setIsTyping(true); // show typing indicator
-  
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat`, {
         method: 'POST',
@@ -61,9 +61,15 @@ function Chat({ botType, courseId, userId, externalPrompt, historyEnabled }) {
         credentials: 'include',
         body: JSON.stringify({ botType, prompt: promptText, courseId, userId, historyEnabled }),
       });
-  
+
       const data = await response.json(); // parse backend response
-      setMessages((prev) => [...prev, { sender: 'ai', text: data.response || 'No response' }]);
+
+      // Detect if the response is a safety warning
+      if (data.response && data.response.includes("⚠️")) {
+        setMessages((prev) => [...prev, { sender: 'system', text: data.response }]);
+      } else {
+        setMessages((prev) => [...prev, { sender: 'ai', text: data.response || 'No response' }]);
+      }
     } catch (error) {
       console.error('Error during chat:', error); // log error for debugging
       setMessages((prev) => [...prev, { sender: 'ai', text: 'Error processing request.' }]);

@@ -178,6 +178,33 @@ def is_vague_prompt(prompt):
     lowered = prompt.lower().strip()
     return any(kw in lowered for kw in vague_keywords)
 
+# ------------------------ Detect Personal Information ------------------------ #
+
+def contains_personal_info(text):
+    """Detect if a user input contains potential personal information."""
+    # Patterns to match common personal information
+    email_pattern = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
+    phone_pattern = r"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"
+    address_pattern = r"\d{1,5}\s+\w+(\s\w+){1,5}"
+    zip_pattern = r"\b\d{5}(-\d{4})?\b"
+    ssn_pattern = r"\b\d{3}-\d{2}-\d{4}\b"
+    credit_card_pattern = r"\b(?:\d[ -]*?){13,16}\b"
+
+    patterns = [
+        email_pattern,
+        phone_pattern,
+        address_pattern,
+        zip_pattern,
+        ssn_pattern,
+        credit_card_pattern
+    ]
+
+    for pattern in patterns:
+        if re.search(pattern, text):
+            return True
+    return False
+
+
 # Check hosted DB connection via Ping
 @app.route("/ping")
 def ping():
@@ -666,6 +693,11 @@ def chat():
         data = request.json
         bot_type = data.get('botType', 'Tutor')
         prompt = data.get('prompt', '')
+        # Filter out personal information
+        if contains_personal_info(prompt):
+            return jsonify({
+                "response": "⚠️ Please avoid sharing personal information such as your email, phone number, address, SSN, or credit card number in AI chats for your own safety!"
+            }), 200
         user_id = data.get('userId')
         history_enabled = data.get('historyEnabled', True)
 
